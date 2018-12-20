@@ -32,7 +32,8 @@ function MspHelper () {
     self.REBOOT_TYPES = {
         FIRMWARE: 0,
         BOOTLOADER: 1,
-        MSC: 2
+        MSC: 2,
+        MSC_UTC: 3
     };
 }
 
@@ -648,7 +649,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
             case MSPCodes.MSP_SET_REBOOT:
                 if (semver.gte(CONFIG.apiVersion, "1.40.0")) {
                     var rebootType = data.read8();
-                    if (rebootType === self.REBOOT_TYPES.MSC) {
+                    if ((rebootType === self.REBOOT_TYPES.MSC) || (rebootType === self.REBOOT_TYPES.MSC_UTC)) {
                         if (data.read8() === 0) {
                             console.log('Storage device not ready.');
 
