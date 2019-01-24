@@ -970,8 +970,32 @@ OSD.constants = {
             desc: 'osdWarningCrashFlipMode'
         },
         ESC_FAIL: {
-            name: 'OSD_WARNING_ESC_FAIL',
+            name: 'ESC_FAIL',
             desc: 'osdWarningEscFail'
+        },
+        CORE_TEMPERATURE: {
+            name: 'CORE_TEMPERATURE',
+            desc: 'osdWarningCoreTemperature'
+        },
+        RC_SMOOTHING_FAILURE: {
+            name: 'RC_SMOOTHING_FAILURE',
+            desc: 'osdWarningRcSmoothingFailure'
+        },
+        FAILSAFE: {
+            name: 'FAILSAFE',
+            desc: 'osdWarningFailsafe'
+        },
+        LAUNCH_CONTROL: {
+            name: 'LAUNCH_CONTROL',
+            desc: 'osdWarningLaunchControl'
+        },
+        GPS_RESCUE_UNAVAILABLE: {
+            name: 'GPS_RESCUE_UNAVAILABLE',
+            desc: 'osdWarningGpsRescueUnavailable'
+        },
+        GPS_RESCUE_DISABLED: {
+            name: 'GPS_RESCUE_DISABLED',
+            desc: 'osdWarningGpsRescueDisabled'
         }
 
     },
@@ -1201,7 +1225,17 @@ OSD.chooseFields = function () {
     ];
     if (semver.gte(CONFIG.apiVersion, "1.39.0")) {
         OSD.constants.WARNINGS = OSD.constants.WARNINGS.concat([
-            F.ESC_FAIL
+            F.ESC_FAIL,
+            F.CORE_TEMPERATURE,
+            F.RC_SMOOTHING_FAILURE
+        ]);
+    }
+    if (semver.gte(CONFIG.apiVersion, "1.41.0")) {
+        OSD.constants.WARNINGS = OSD.constants.WARNINGS.concat([
+            F.FAILSAFE,
+            F.LAUNCH_CONTROL,
+            F.GPS_RESCUE_UNAVAILABLE,
+            F.GPS_RESCUE_DISABLED
         ]);
     }
 };
@@ -1308,13 +1342,16 @@ OSD.msp = {
             result.push16(OSD.data.alarms.alt.value);
             if (semver.gte(CONFIG.apiVersion, "1.37.0")) {
                 var warningFlags = 0;
-                for (var i = 0; i < OSD.constants.WARNINGS.length; i++) {
+                for (var i = 0; i < OSD.data.warnings.length; i++) {
                     if (OSD.data.warnings[i].enabled) {
                         warningFlags |= (1 << i);
                     }
                 }
                 console.log(warningFlags);
                 result.push16(warningFlags);
+                if (semver.gte(CONFIG.apiVersion, "1.41.0")) {
+                    result.push32(warningFlags);
+                }
             }
         }
         return result;
@@ -1392,18 +1429,21 @@ OSD.msp = {
             var j = d.display_items.length;
             var c;
             var suffix;
+            var ignoreSize = false;
             if (d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
                 c = OSD.constants.DISPLAY_FIELDS[j];
             } else {
                 c = OSD.constants.UNKNOWN_DISPLAY_FIELD;
                 suffix = "" + (1 + d.display_items.length - OSD.constants.DISPLAY_FIELDS.length);
+                ignoreSize = true;
             }
             d.display_items.push($.extend({
                 name: suffix ? c.name + suffix : c.name,
                 desc: c.desc,
                 index: j,
                 draw_order: c.draw_order,
-                preview: suffix ? c.preview + suffix : c.preview
+                preview: suffix ? c.preview + suffix : c.preview,
+                ignoreSize: ignoreSize
             }, this.helpers.unpack.position(v, c)));
         }
 
@@ -1448,10 +1488,24 @@ OSD.msp = {
             }
 
             // Parse enabled warnings
-            if (view.offset + 2 <= view.byteLength) {
-                var warningFlags = view.readU16();
-                for (var i = 0; i < OSD.constants.WARNINGS.length; i++) {
+            var warningCount = OSD.constants.WARNINGS.length;
+            var warningFlags = view.readU16();
+            if (semver.gte(CONFIG.apiVersion, "1.41.0")) {
+                warningCount = view.readU8();
+                // the flags were replaced with a 32bit version
+                warningFlags = view.readU32();
+            }
+            for (var i = 0; i < warningCount; i++) {
+
+                // Known warning field
+                if (i < OSD.constants.WARNINGS.length) {
                     d.warnings.push($.extend(OSD.constants.WARNINGS[i], { enabled: (warningFlags & (1 << i)) != 0 }));
+
+                // Push Unknown Warning field
+                } else {
+                    var warningNumber = i - OSD.constants.WARNINGS.length + 1;
+                    d.warnings.push({name: 'UNKNOWN_' + warningNumber, desc: 'osdWarningUnknown', enabled: (warningFlags & (1 << i)) != 0 });
+
                 }
             }
         }
@@ -1528,30 +1582,31 @@ OSD.GUI.preview = {
             console.log('Calculated Position: ' + position);
         }
 
-        var overflows_line = 0;
-        // Standard preview, string type
-        if (display_item.preview.constructor !== Array) {
-            overflows_line = FONT.constants.SIZES.LINE - ((position % FONT.constants.SIZES.LINE) + display_item.preview.length);
-            if (overflows_line < 0) {
-                position += overflows_line;
-            }
-            // Advanced preview, array type
-        } else {
-            var arrayElements = display_item.preview;
-            var limits = OSD.searchLimitsElement(arrayElements);
+        if (!display_item.ignoreSize) {
+            if (display_item.preview.constructor !== Array) {
+                // Standard preview, string type
+                var overflows_line = FONT.constants.SIZES.LINE - ((position % FONT.constants.SIZES.LINE) + display_item.preview.length);
+                if (overflows_line < 0) {
+                    position += overflows_line;
+                }
+            } else {
+                // Advanced preview, array type
+                var arrayElements = display_item.preview;
+                var limits = OSD.searchLimitsElement(arrayElements);
 
-            var selectedPositionX = position % FONT.constants.SIZES.LINE;
-            var selectedPositionY = Math.trunc(position / FONT.constants.SIZES.LINE);
+                var selectedPositionX = position % FONT.constants.SIZES.LINE;
+                var selectedPositionY = Math.trunc(position / FONT.constants.SIZES.LINE);
 
-            if ((limits.minX < 0) && ((selectedPositionX + limits.minX) < 0)) {
-                position += Math.abs(selectedPositionX + limits.minX);
-            } else if ((limits.maxX > 0) && ((selectedPositionX + limits.maxX) >= FONT.constants.SIZES.LINE)) {
-                position -= (selectedPositionX + limits.maxX + 1) - FONT.constants.SIZES.LINE;
-            }
-            if ((limits.minY < 0) && ((selectedPositionY + limits.minY) < 0)) {
-                position += Math.abs(selectedPositionY + limits.minY) * FONT.constants.SIZES.LINE;
-            } else if ((limits.maxY > 0) && ((selectedPositionY + limits.maxY) >= OSD.data.display_size.y)) {
-                position -= (selectedPositionY + limits.maxY - OSD.data.display_size.y + 1) * FONT.constants.SIZES.LINE;
+                if ((limits.minX < 0) && ((selectedPositionX + limits.minX) < 0)) {
+                    position += Math.abs(selectedPositionX + limits.minX);
+                } else if ((limits.maxX > 0) && ((selectedPositionX + limits.maxX) >= FONT.constants.SIZES.LINE)) {
+                    position -= (selectedPositionX + limits.maxX + 1) - FONT.constants.SIZES.LINE;
+                }
+                if ((limits.minY < 0) && ((selectedPositionY + limits.minY) < 0)) {
+                    position += Math.abs(selectedPositionY + limits.minY) * FONT.constants.SIZES.LINE;
+                } else if ((limits.maxY > 0) && ((selectedPositionY + limits.maxY) >= OSD.data.display_size.y)) {
+                    position -= (selectedPositionY + limits.maxY - OSD.data.display_size.y + 1) * FONT.constants.SIZES.LINE;
+                }
             }
         }
 

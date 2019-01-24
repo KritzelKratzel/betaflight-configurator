@@ -1096,6 +1096,9 @@
     "beeperCAM_CONNECTION_CLOSE": {
         "message": "Beep when the 5 key camera control is exited"
     },
+    "beeperRC_SMOOTHING_INIT_FAIL": {
+        "message": "Beep when armed and rc smoothing has not initialized filters"
+    },
     "configuration3d": {
         "message": "3D ESC/Motor Features"
     },
@@ -1793,6 +1796,12 @@
     },
     "adjustmentsFunction28": {
         "message": "Yaw F Adjustment"
+    },
+    "adjustmentsFunction29": {
+        "message": "OSD Profile Selection"
+    },
+    "adjustmentsFunction30": {
+        "message": "LED Profile Selection"
     },
     "adjustmentsSave": {
         "message": "Save"
@@ -3687,6 +3696,9 @@
         "message": "Select the timer alarm threshold in minutes, when the time exceeds this value the OSD element will blink, setting this to 0 disables the alarm"
     },
 
+    "osdWarningUnknown": {
+        "message": "Unknown warning (details to be added in a future release)"
+    },
     "osdWarningArmingDisabled": {
         "message": "Reports the most severe reason for not arming"
     },
@@ -3707,6 +3719,24 @@
     },
     "osdWarningEscFail": {
         "message": "Enumerates a list with the ESCs/motors that are failing (RPM or temperature are out of the configured threshold)"
+    },
+    "osdWarningCoreTemperature": {
+        "message": "Warns when MCU core temperature exceeds a configured threshold"
+    },
+    "osdWarningRcSmoothingFailure": {
+        "message": "Warns when RC Smoothing initialization failed"
+    },
+    "osdWarningFailsafe": {
+        "message": "Warns when failsafe occurs"
+    },
+    "osdWarningLaunchControl": {
+        "message": "Warns when Launch Control mode is activated"
+    },
+    "osdWarningGpsRescueUnavailable": {
+        "message": "Warns when GPS Rescue is not available and cannot be activated"
+    },
+    "osdWarningGpsRescueDisabled": {
+        "message": "Warns when GPS Rescue is disabled"
     },
 
     "osdSectionHelpElements": {
