@@ -38,6 +38,18 @@ SYM.HEADING_S = 0x19;
 SYM.HEADING_E = 0x1A;
 SYM.HEADING_W = 0x1B;
 SYM.TEMP_C = 0x0E;
+SYM.STICK_OVERLAY_SPRITE_HIGH = 0x08;
+SYM.STICK_OVERLAY_SPRITE_MID = 0x09;
+SYM.STICK_OVERLAY_SPRITE_LOW = 0x0A;
+SYM.STICK_OVERLAY_CENTER = 0x0B;
+SYM.STICK_OVERLAY_VERTICAL = 0x16;
+SYM.STICK_OVERLAY_HORIZONTAL = 0x17;
+
+var STICK_OVERLAY_SPRITE = [
+    SYM.STICK_OVERLAY_SPRITE_HIGH,
+    SYM.STICK_OVERLAY_SPRITE_MID,
+    SYM.STICK_OVERLAY_SPRITE_LOW
+];
 
 var FONT = FONT || {};
 
@@ -127,7 +139,7 @@ FONT.parseMCMFontFile = function (data) {
     return FONT.data.characters;
 };
 
-FONT.openFontFile = function ($preview) {
+FONT.openFontFile = function (fontPreviewElement) {
     return new Promise(function (resolve) {
         chrome.fileSystem.chooseEntry({ type: 'openFile', accepts: [{ description: 'MCM files', extensions: ['mcm'] }] }, function (fileEntry) {
             FONT.data.loaded_font_file = fileEntry.name;
@@ -200,7 +212,8 @@ FONT.upload = function ($progress) {
         return MSP.promise(MSPCodes.MSP_OSD_CHAR_WRITE, FONT.msp.encode(i));
     })
         .then(function () {
-            OSD.GUI.jbox.close();
+            OSD.GUI.fontManager.close();
+
             return MSP.promise(MSPCodes.MSP_SET_REBOOT);
         });
 };
@@ -276,9 +289,51 @@ OSD.generateTemperaturePreview = function (osd_data, temperature) {
 
 OSD.generateCraftName = function (osd_data) {
     var preview = 'CRAFT_NAME';
-    if (CONFIG.name != '')
+    if (CONFIG.name != '') {
         preview = CONFIG.name.toUpperCase();
+    }
     return preview;
+}
+
+OSD.drawStickOverlayPreview = function () {
+    function randomInt(count) {
+        return Math.floor(Math.random() * Math.floor(count));
+    }
+
+    var OVERLAY_WIDTH = 7;
+    var OVERLAY_HEIGHT = 5;
+
+    var stickX = randomInt(OVERLAY_WIDTH);
+    var stickY = randomInt(OVERLAY_HEIGHT);
+    var stickSymbol = randomInt(3);
+
+    // From 'osdDrawStickOverlayAxis' in 'src/main/io/osd.c'
+    var stickOverlay = new Array();
+    for (var x = 0; x < OVERLAY_WIDTH; x++) {
+        for (var y = 0; y < OVERLAY_HEIGHT; y++) {
+            var symbol = undefined;
+
+            if (x === stickX && y === stickY) {
+                symbol = STICK_OVERLAY_SPRITE[stickSymbol];
+            } else if (x === (OVERLAY_WIDTH - 1) / 2 && y === (OVERLAY_HEIGHT - 1) / 2) {
+                symbol = SYM.STICK_OVERLAY_CENTER;
+            } else if (x === (OVERLAY_WIDTH - 1) / 2) {
+                symbol = SYM.STICK_OVERLAY_VERTICAL;
+            } else if (y === (OVERLAY_HEIGHT - 1) / 2) {
+                symbol = SYM.STICK_OVERLAY_HORIZONTAL;
+            }
+
+            if (symbol) {
+                var element = {
+                    x: x,
+                    y: y,
+                    sym: symbol
+                };
+                stickOverlay.push(element);
+            }
+        }
+    }
+    return stickOverlay;
 }
 
 OSD.constants = {
@@ -409,7 +464,6 @@ OSD.constants = {
                 return semver.gte(CONFIG.apiVersion, "1.39.0") ? true : false;
             },
             preview: function () {
-
                 var artificialHorizon = new Array();
 
                 for (var j = 1; j < 8; j++) {
@@ -495,9 +549,7 @@ OSD.constants = {
             default_position: -77,
             draw_order: 150,
             positionable: true,
-            preview: function (osd_data) {
-                return OSD.generateCraftName(osd_data, 1);
-            }
+            preview: OSD.generateCraftName
         },
         ALTITUDE: {
             name: 'ALTITUDE',
@@ -846,6 +898,22 @@ OSD.constants = {
                 return '653' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE);
             }
         },
+        STICK_OVERLAY_LEFT: {
+            name: 'STICK_OVERLAY_LEFT',
+            desc: 'osdDescElementStickOverlayLeft',
+            default_position: -1,
+            draw_order: 370,
+            positionable: true,
+            preview: OSD.drawStickOverlayPreview
+        },
+        STICK_OVERLAY_RIGHT: {
+            name: 'STICK_OVERLAY_RIGHT',
+            desc: 'osdDescElementStickOverlayRight',
+            default_position: -1,
+            draw_order: 370,
+            positionable: true,
+            preview: OSD.drawStickOverlayPreview
+        },
     },
     UNKNOWN_DISPLAY_FIELD: {
         name: 'UNKNOWN_',
@@ -1119,6 +1187,8 @@ OSD.chooseFields = function () {
                                                 F.FLIP_ARROW,
                                                 F.LINK_QUALITY,
                                                 F.FLIGHT_DIST,
+                                                F.STICK_OVERLAY_LEFT,
+                                                F.STICK_OVERLAY_RIGHT,
                                             ]);
                                         }
                                     }
@@ -1632,14 +1702,14 @@ TABS.osd.initialize = function (callback) {
 
     $('#content').load("./tabs/osd.html", function () {
         // Generate font type select element
-        var fontselect = $('.fontpresets');
+        var fontPresetsElement = $('.fontpresets');
         OSD.constants.FONT_TYPES.forEach(function (e, i) {
             var option = $('<option>', {
                 "data-font-file": e.file,
                 value: e.file,
                 text: e.name
             });
-            fontselect.append($(option));
+            fontPresetsElement.append($(option));
         });
 
         var fontbuttons = $('.fontpresets_wrapper');
@@ -1652,7 +1722,7 @@ TABS.osd.initialize = function (callback) {
         i18n.localizePage();
 
         // Open modal window
-        OSD.GUI.jbox = new jBox('Modal', {
+        OSD.GUI.fontManager = new jBox('Modal', {
             width: 720,
             height: 420,
             closeButton: 'title',
@@ -2134,17 +2204,16 @@ TABS.osd.initialize = function (callback) {
         });
 
         // font preview window
-        var $preview = $('.font-preview');
+        var fontPreviewElement = $('.font-preview');
 
         // init structs once, also clears current font
         FONT.initData();
 
-        var $fontpresets = $('.fontpresets')
-        $fontpresets.change(function (e) {
+        fontPresetsElement.change(function (e) {
             var $font = $('.fontpresets option:selected');
             $.get('./resources/osd/' + $font.data('font-file') + '.mcm', function (data) {
                 FONT.parseMCMFontFile(data);
-                FONT.preview($preview);
+                FONT.preview(fontPreviewElement);
                 LogoManager.drawPreview();
                 updateOsdView();
             });
@@ -2154,14 +2223,14 @@ TABS.osd.initialize = function (callback) {
         var $font = $('.fontpresets option:selected');
         $.get('./resources/osd/' + $font.data('font-file') + '.mcm', function (data) {
             FONT.parseMCMFontFile(data);
-            FONT.preview($preview);
+            FONT.preview(fontPreviewElement);
             LogoManager.drawPreview();
             updateOsdView();
         });
 
         $('button.load_font_file').click(function () {
             FONT.openFontFile().then(function () {
-                FONT.preview($preview);
+                FONT.preview(fontPreviewElement);
                 LogoManager.drawPreview();
                 updateOsdView();
             }).catch(error => console.error(error));
@@ -2272,6 +2341,10 @@ TABS.osd.initialize = function (callback) {
 
 TABS.osd.cleanup = function (callback) {
     PortHandler.flush_callbacks();
+
+    if (OSD.GUI.fontManager) {
+        OSD.GUI.fontManager.destroy();
+    }
 
     // unbind "global" events
     $(document).unbind('keypress');
