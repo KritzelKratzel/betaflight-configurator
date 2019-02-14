@@ -1,6 +1,5 @@
 'use strict';
 
-
 function MspHelper () {
   var self = this;
 
@@ -35,6 +34,8 @@ function MspHelper () {
         MSC: 2,
         MSC_UTC: 3
     };
+
+    self.SIGNATURE_LENGTH = 32;
 }
 
 MspHelper.prototype.reorderPwmProtocols = function (protocol) {
@@ -711,12 +712,49 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 }
                 CONFIG.boardIdentifier = identifier;
                 CONFIG.boardVersion = data.readU16();
+
                 if (semver.gte(CONFIG.apiVersion, "1.35.0")) {
                     CONFIG.boardType = data.readU8();
                 } else {
                     CONFIG.boardType = 0;
                 }
 
+                CONFIG.targetName = "";
+                if (semver.gte(CONFIG.apiVersion, "1.37.0")) {
+                    CONFIG.commCapabilities = data.readU8();
+
+                    let length = data.readU8();
+                    for (let i = 0; i < length; i++) {
+                        CONFIG.targetName += String.fromCharCode(data.readU8());
+                    }
+                } else {
+                    CONFIG.commCapabilities = 0;
+                }
+
+                CONFIG.boardName = "";
+                CONFIG.manufacturerId = "";
+                CONFIG.signature = [];
+                if (semver.gte(CONFIG.apiVersion, "1.39.0")) {
+                    let length = data.readU8();
+                    for (let i = 0; i < length; i++) {
+                        CONFIG.boardName += String.fromCharCode(data.readU8());
+                    }
+
+                    length = data.readU8();
+                    for (let i = 0; i < length; i++) {
+                        CONFIG.manufacturerId += String.fromCharCode(data.readU8());
+                    }
+
+                    for (let i = 0; i < self.SIGNATURE_LENGTH; i++) {
+                        CONFIG.signature.push(data.readU8());
+                    }
+                }
+
+                if (semver.gte(CONFIG.apiVersion, "1.41.0")) {
+                    CONFIG.mcuTypeId = data.readU8();
+                } else {
+                    CONFIG.mcuTypeId = 255;
+                }
                 break;
 
             case MSPCodes.MSP_NAME:
@@ -882,7 +920,10 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     PID_ADVANCED_CONFIG.digitalIdlePercent = data.readU16() / 100;
 
                     if (semver.gte(CONFIG.apiVersion, "1.25.0")) {
-                        PID_ADVANCED_CONFIG.gyroUse32kHz = data.readU8();
+                        let gyroUse32kHz = data.readU8();
+                        if (semver.lt(CONFIG.apiVersion, "1.41.0")) {
+                            PID_ADVANCED_CONFIG.gyroUse32kHz = gyroUse32kHz;
+                        }
                     }
                 }
                 break;
@@ -904,12 +945,15 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     }
                     if (semver.gte(CONFIG.apiVersion, "1.39.0")) {
                         FILTER_CONFIG.gyro_hardware_lpf = data.readU8();
-                        FILTER_CONFIG.gyro_32khz_hardware_lpf = data.readU8();
+                        let gyro_32khz_hardware_lpf = data.readU8();
                         FILTER_CONFIG.gyro_lowpass_hz = data.readU16();
                         FILTER_CONFIG.gyro_lowpass2_hz = data.readU16();
                         FILTER_CONFIG.gyro_lowpass_type = data.readU8();
                         FILTER_CONFIG.gyro_lowpass2_type = data.readU8();
                         FILTER_CONFIG.dterm_lowpass2_hz = data.readU16();
+                        if (semver.lt(CONFIG.apiVersion, "1.41.0")) {
+                            FILTER_CONFIG.gyro_32khz_hardware_lpf = data.readU8();
+                        }
                     }
                 }
                 break;
@@ -1272,7 +1316,9 @@ MspHelper.prototype.process_data = function(dataHandler) {
 
             switch (code) {
             case MSPCodes.MSP_SET_REBOOT:
-                showErrorDialog(i18n.getMessage('operationNotSupported'));
+                TABS.onboard_logging.mscRebootFailedCallback();
+
+                break;
             }
         }
     }
@@ -1591,7 +1637,11 @@ MspHelper.prototype.crunch = function(code) {
                 buffer.push16(PID_ADVANCED_CONFIG.digitalIdlePercent * 100);
 
                 if (semver.gte(CONFIG.apiVersion, "1.25.0")) {
-                    buffer.push8(PID_ADVANCED_CONFIG.gyroUse32kHz);
+                    let gyroUse32kHz = 0;
+                    if (semver.lt(CONFIG.apiVersion, "1.41.0")) {
+                        gyroUse32kHz = PID_ADVANCED_CONFIG.gyroUse32kHz;
+                    }
+                    buffer.push8(gyroUse32kHz);
                 }
             }
             break;
@@ -1612,8 +1662,12 @@ MspHelper.prototype.crunch = function(code) {
                     buffer.push8(FILTER_CONFIG.dterm_lowpass_type);
                 }
                 if (semver.gte(CONFIG.apiVersion, "1.39.0")) {
+                    let gyro_32khz_hardware_lpf = 0;
+                    if (semver.lt(CONFIG.apiVersion, "1.41.0")) {
+                        gyro_32khz_hardware_lpf = FILTER_CONFIG.gyro_32khz_hardware_lpf;
+                    }
                     buffer.push8(FILTER_CONFIG.gyro_hardware_lpf)
-                          .push8(FILTER_CONFIG.gyro_32khz_hardware_lpf)
+                          .push8(gyro_32khz_hardware_lpf)
                           .push16(FILTER_CONFIG.gyro_lowpass_hz)
                           .push16(FILTER_CONFIG.gyro_lowpass2_hz)
                           .push8(FILTER_CONFIG.gyro_lowpass_type)
