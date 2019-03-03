@@ -1547,6 +1547,9 @@
     "auxiliaryAddRange": {
         "message": "Bereich hinzufügen"
     },
+    "auxiliaryAddLink": {
+        "message": "Link"
+    },
     "auxiliaryButtonSave": {
         "message": "Speichern"
     },
@@ -1555,6 +1558,12 @@
     },
     "auxiliaryAutoChannelSelect": {
         "message": "AUTO"
+    },
+    "auxiliaryModeLogicOR": {
+      "message": "OR"
+    },
+    "auxiliaryModeLogicAND": {
+      "message": "AND"
     },
     "adjustmentsHelp": {
         "message": "Konfiguriere Schalter Anpassungen. Siehe im 'in-flight adjustments' Abschnitt des Handbuchs für Details nach. Die Änderungen an Anpassungsfunktionen werden nicht automatisch gespeichert. Es gibt 4 (Speicher-) Slots. Jeder Schalter der für gleichzeitige Anpassungen genutzt wird, muss jeweils einem eindeutigen Slot zugeordnet sein."

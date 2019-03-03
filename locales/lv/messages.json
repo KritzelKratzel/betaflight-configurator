@@ -1546,6 +1546,9 @@
     "auxiliaryAddRange": {
         "message": "Pievienot"
     },
+    "auxiliaryAddLink": {
+        "message": "Saistīt"
+    },
     "auxiliaryButtonSave": {
         "message": "Saglabāt"
     },
@@ -1554,6 +1557,12 @@
     },
     "auxiliaryAutoChannelSelect": {
         "message": "AUTO"
+    },
+    "auxiliaryModeLogicOR": {
+      "message": "OR"
+    },
+    "auxiliaryModeLogicAND": {
+      "message": "AND"
     },
     "adjustmentsHelp": {
         "message": "Konfigurēt pieregulēšanas slēdžus. Detaļas ir atrodamas manuāla sadaļā 'in-flight adjustments'. Šīs izmaiņas ko pieregulēšanas funkcija izpilda netiek automātiski saglabātas. Tur ir 4 sloti. Katrs slēdzis tiek lietots, lai vienlaikus veiktu nepieciešamās izmaiņas atbilstošam slotam."
