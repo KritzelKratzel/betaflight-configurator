@@ -1329,13 +1329,13 @@
         "message": "Blackbox logging"
     },
     "portsFunction_TBS_SMARTAUDIO": {
-        "message": "TBS SmartAudio"
+        "message": "VTX (TBS SmartAudio)"
     },
     "portsFunction_IRC_TRAMP": {
-        "message": "IRC Tramp"
+        "message": "VTX (IRC Tramp)"
     },
     "portsFunction_RUNCAM_DEVICE_CONTROL": {
-        "message": "RunCam Device"
+        "message": "Camera (RunCam Protocol)"
     },
     "pidTuningProfileOption": {
         "message": "Profile $1"
@@ -3628,7 +3628,7 @@
         "message": "Craft name as set in Configuration tab"
     },
     "osdDescElementDisplayName": {
-        "message": "Display name as set in Configuration tab"
+        "message": "Display name as set by the \"display_name\" cli command"
     },
     "osdDescElementAltitude": {
         "message": "Current altitude (flashes when above alarm threshold)"
