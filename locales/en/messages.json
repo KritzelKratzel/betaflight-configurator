@@ -1042,7 +1042,10 @@
     "configurationSensorGyroToUse": {
         "message": "GYRO/ACCEL"
     },
-    "configurationSensorGyroToUseDefaultOption": {
+    "configurationSensorGyroToUseNotFound": {
+        "message": "Warning: No Gyro/Acc found"
+    },
+    "configurationSensorGyroToUseFirst": {
         "message": "First"
     },
     "configurationSensorGyroToUseSecond": {
@@ -1682,6 +1685,9 @@
     "tuningHelp": {
         "message": "<b>Tuning tips</b><br /><span class=\"message-negative\">IMPORTANT:</span> It is important to verify motor temperatures during first flights. The higher the filter value gets the better it may fly, but you also will get more noise into the motors. <br>Default value of 100Hz is optimal, but for noiser setups you can try lowering Dterm filter to 50Hz and possibly also the gyro filter."
     },
+    "filterWarning": {
+        "message": "<span class=\"message-negative\"><b>Warning:</b></span> The amount of filtering you are using is dangerously low. This is likely to make the craft hard to control, and can result in flyaways. It is highly recommended that you <b>enable at least one of Gyro Dynamic Lowpass or Gyro Lowpass 1 and at least one of D Term Dynamic Lowpass or D Term Lowpass 1</b>."
+    },
     "receiverThrottleMid": {
         "message": "Throttle MID"
     },
@@ -2260,7 +2266,7 @@
     },
 
     "cliInfo": {
-        "message": "<strong>Note</strong>: Leaving CLI tab or pressing Disconnect will <strong>automatically</strong> send \"<strong>exit</strong>\" to the board.  With the latest firmware this will make the controller <span class=\"message-negative\">restart</span> and unsaved changes will be <span class=\"message-negative\">lost</span>."
+        "message": "<strong>Note:</strong> Leaving CLI tab or pressing Disconnect will <strong>automatically</strong> send \"<strong>exit</strong>\" to the board.  With the latest firmware this will make the controller <strong>restart</strong> and unsaved changes will be <strong>lost</strong>.<p><strong><span class=\"message-negative\">Warning:</span></strong> Some commands in CLI can result in arbitrary signals being sent on the motor output pins. This can cause motors to spin up if a battery is connected. Therefore it is highly recommended to make sure that <strong>no battery is connected before entering commands in CLI</strong>."
     },
     "cliInputPlaceholder": {
         "message": "Write your command here"
