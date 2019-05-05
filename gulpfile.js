@@ -32,7 +32,7 @@ const RELEASE_DIR = './release/';
 const LINUX_INSTALL_DIR = '/opt/betaflight';
 
 var nwBuilderOptions = {
-    version: '0.35.3',
+    version: '0.36.4',
     files: './dist/**/*',
     macIcns: './src/images/bf_icon.icns',
     macPlist: { 'CFBundleDisplayName': 'Betaflight Configurator'},
@@ -228,7 +228,11 @@ function dist_src() {
         .pipe(gulp.src('changelog.html', { passthrougth: true }))
         .pipe(gulp.dest(DIST_DIR))
         .pipe(install({
-            npm: '--production --ignore-scripts'
+            commands: {
+                'package.json': 'yarn'
+            },
+            production: true,
+            ignoreScripts: true
         }));
 };
 
@@ -588,7 +592,8 @@ function release_rpm(arch, done) {
              tempDir: path.join(RELEASE_DIR,'tmp-rpm-build-' + arch),
              keepTemp: false,
              verbose: false,
-             rpmDest: RELEASE_DIR
+             rpmDest: RELEASE_DIR,
+             execOpts: { maxBuffer: 1024 * 1024 * 16 },
     };
 
     buildRpm(options, function(err, rpm) {

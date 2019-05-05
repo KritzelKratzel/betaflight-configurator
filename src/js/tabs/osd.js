@@ -10,8 +10,8 @@ SYM.THR = 0x04;
 SYM.THR1 = 0x05;
 SYM.FLY_M = 0x9C;
 SYM.ON_M = 0x9B;
-SYM.AH_CENTER_LINE = 0x26;
-SYM.AH_CENTER_LINE_RIGHT = 0x27;
+SYM.AH_CENTER_LINE = 0x7B;
+SYM.AH_CENTER_LINE_RIGHT = 0x7D;
 SYM.AH_CENTER = 0x7E;
 SYM.AH_BAR9_0 = 0x80;
 SYM.AH_DECORATION = 0x13;
@@ -20,6 +20,8 @@ SYM.AMP = 0x9A;
 SYM.MAH = 0x07;
 SYM.METRE = 0xC;
 SYM.FEET = 0xF;
+SYM.KPH = 0x9E;
+SYM.MPH = 0x9D;
 SYM.GPS_SAT_L = 0x1E;
 SYM.GPS_SAT_R = 0x1F;
 SYM.PB_START = 0x8A;
@@ -37,6 +39,7 @@ SYM.HEADING_N = 0x18;
 SYM.HEADING_S = 0x19;
 SYM.HEADING_E = 0x1A;
 SYM.HEADING_W = 0x1B;
+SYM.TEMPERATURE = 0x7A;
 SYM.TEMP_F = 0x0D;
 SYM.TEMP_C = 0x0E;
 SYM.STICK_OVERLAY_SPRITE_HIGH = 0x08;
@@ -45,6 +48,7 @@ SYM.STICK_OVERLAY_SPRITE_LOW = 0x0A;
 SYM.STICK_OVERLAY_CENTER = 0x0B;
 SYM.STICK_OVERLAY_VERTICAL = 0x16;
 SYM.STICK_OVERLAY_HORIZONTAL = 0x17;
+SYM.BBLOG = 0x10;
 
 var STICK_OVERLAY_SPRITE = [
     SYM.STICK_OVERLAY_SPRITE_HIGH,
@@ -272,6 +276,7 @@ OSD.generateTimerPreview = function (osd_data, timer_index) {
     var preview = '';
     switch (osd_data.timers[timer_index].src) {
         case 0:
+        case 3:
             preview += FONT.symbol(SYM.ON_M);
             break;
         case 1:
@@ -291,7 +296,7 @@ OSD.generateTimerPreview = function (osd_data, timer_index) {
 };
 
 OSD.generateTemperaturePreview = function (osd_data, temperature) {
-    var preview = '';
+    var preview = FONT.symbol(SYM.TEMPERATURE);
     switch (osd_data.unit_mode) {
         case 0:
             temperature *= (9.0 / 5.0);
@@ -379,11 +384,6 @@ OSD.constants = {
     UNIT_TYPES: [
         'IMPERIAL',
         'METRIC'
-    ],
-    TIMER_TYPES: [
-        'ON TIME',
-        'TOTAL ARMED TIME',
-        'LAST ARMED TIME'
     ],
     TIMER_PRECISION: [
         'SECOND',
@@ -615,7 +615,7 @@ OSD.constants = {
             draw_order: 430,
             positionable: true,
             preview: function (osd_data) {
-                return ' 40' + (osd_data.unit_mode === 0 ? 'M' : 'K');
+                return ' 40' + (osd_data.unit_mode === 0 ? FONT.symbol(SYM.MPH) : FONT.symbol(SYM.KPH));
             }
         },
         GPS_SATS: {
@@ -798,7 +798,9 @@ OSD.constants = {
             default_position: -1,
             draw_order: 480,
             positionable: true,
-            preview: FONT.symbol(SYM.TEMP_C) + '45'
+            preview: function (osd_data) {
+                return "E" + OSD.generateTemperaturePreview(osd_data, 45);
+            }
         },
         ESC_RPM: {
             name: 'ESC_RPM',
@@ -859,7 +861,7 @@ OSD.constants = {
             draw_order: 520,
             positionable: true,
             preview: function (osd_data) {
-                return OSD.generateTemperaturePreview(osd_data, 33);
+                return "C" + OSD.generateTemperaturePreview(osd_data, 33);
             }
         },
         ANTI_GRAVITY: {
@@ -895,7 +897,7 @@ OSD.constants = {
             default_position: -1,
             draw_order: 330,
             positionable: true,
-            preview: 'L16'
+            preview: FONT.symbol(SYM.BBLOG) + '16'
         },
         FLIP_ARROW: {
             name: 'FLIP_ARROW',
@@ -1053,6 +1055,18 @@ OSD.constants = {
         MAX_FFT: {
             name: 'MAX_FFT',
             desc: 'osdDescStatMaxFFT'
+        },
+        TOTAL_FLIGHTS: {
+            name: 'TOTAL_FLIGHTS',
+            desc: 'osdDescStatTotalFlights'
+        },
+        TOTAL_FLIGHT_TIME: {
+            name: 'TOTAL_FLIGHT_TIME',
+            desc: 'osdDescStatTotalFlightTime'
+        },
+        TOTAL_FLIGHT_DIST: {
+            name: 'TOTAL_FLIGHT_DIST',
+            desc: 'osdDescStatTotalFlightDistance'
         }
     },
     ALL_WARNINGS: {
@@ -1107,8 +1121,15 @@ OSD.constants = {
         GPS_RESCUE_DISABLED: {
             name: 'GPS_RESCUE_DISABLED',
             desc: 'osdWarningGpsRescueDisabled'
-        }
-
+        },
+        RSSI: {
+            name: 'RSSI',
+            desc: 'osdWarningRSSI'
+        },
+        LINK_QUALITY: {
+            name: 'LINK_QUALITY',
+            desc: 'osdWarningLinkQuality'
+        },
     },
     FONT_TYPES: [
         { file: "default", name: "Default" },
@@ -1118,7 +1139,9 @@ OSD.constants = {
         { file: "betaflight", name: "Betaflight" },
         { file: "digital", name: "Digital" },
         { file: "clarity", name: "Clarity" },
-        { file: "vision", name: "Vision" }
+        { file: "vision", name: "Vision" },
+        { file: "impact", name: "Impact" },
+        { file: "impact_mini", name: "Impact Mini" },
     ]
 };
 
@@ -1337,6 +1360,13 @@ OSD.chooseFields = function () {
                 F.MAX_FFT
             ]);
         }
+        if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+            OSD.constants.STATISTIC_FIELDS = OSD.constants.STATISTIC_FIELDS.concat([
+                F.TOTAL_FLIGHTS,
+                F.TOTAL_FLIGHT_TIME,
+                F.TOTAL_FLIGHT_DIST
+            ]);
+        }
     }
 
     // Choose warnings
@@ -1363,6 +1393,21 @@ OSD.chooseFields = function () {
             F.LAUNCH_CONTROL,
             F.GPS_RESCUE_UNAVAILABLE,
             F.GPS_RESCUE_DISABLED
+        ]);
+    }
+    
+    OSD.constants.TIMER_TYPES = [
+        'ON TIME',
+        'TOTAL ARMED TIME',
+        'LAST ARMED TIME'
+    ];
+    if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+        OSD.constants.TIMER_TYPES = OSD.constants.TIMER_TYPES.concat([
+            'ON/ARM TIME'
+        ]);
+        OSD.constants.WARNINGS = OSD.constants.WARNINGS.concat([
+            F.RSSI,
+            F.LINK_QUALITY
         ]);
     }
 };
