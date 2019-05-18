@@ -1,6 +1,7 @@
 'use strict';
 
 var SYM = SYM || {};
+// some of these are changed in the initialization function below
 SYM.BLANK = 0x20;
 SYM.VOLT = 0x06;
 SYM.RSSI = 0x01;
@@ -24,6 +25,9 @@ SYM.KPH = 0x9E;
 SYM.MPH = 0x9D;
 SYM.GPS_SAT_L = 0x1E;
 SYM.GPS_SAT_R = 0x1F;
+SYM.GPS_LAT = 0x89;
+SYM.GPS_LON = 0x98;
+SYM.HOMEFLAG = 0x11;
 SYM.PB_START = 0x8A;
 SYM.PB_FULL = 0x8B;
 SYM.PB_EMPTY = 0x8D;
@@ -49,6 +53,9 @@ SYM.STICK_OVERLAY_CENTER = 0x0B;
 SYM.STICK_OVERLAY_VERTICAL = 0x16;
 SYM.STICK_OVERLAY_HORIZONTAL = 0x17;
 SYM.BBLOG = 0x10;
+SYM.ALTITUDE = 0x7F;
+SYM.PITCH = 0x15;
+SYM.ROLL = 0x14;
 
 var STICK_OVERLAY_SPRITE = [
     SYM.STICK_OVERLAY_SPRITE_HIGH,
@@ -472,7 +479,9 @@ OSD.constants = {
             positionable: function () {
                 return semver.gte(CONFIG.apiVersion, "1.39.0") ? true : false;
             },
-            preview: FONT.symbol(SYM.AH_CENTER_LINE) + FONT.symbol(SYM.AH_CENTER) + FONT.symbol(SYM.AH_CENTER_LINE_RIGHT)
+            preview: function () {
+                return FONT.symbol(SYM.AH_CENTER_LINE) + FONT.symbol(SYM.AH_CENTER) + FONT.symbol(SYM.AH_CENTER_LINE_RIGHT);
+            }
         },
         ARTIFICIAL_HORIZON: {
             name: 'ARTIFICIAL_HORIZON',
@@ -583,7 +592,7 @@ OSD.constants = {
             draw_order: 160,
             positionable: true,
             preview: function (osd_data) {
-                return ' 399.7' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE);
+                return FONT.symbol(SYM.ALTITUDE) + ' 399.7' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE);
             }
         },
         ONTIME: {
@@ -632,7 +641,7 @@ OSD.constants = {
             default_position: -1,
             draw_order: 450,
             positionable: true,
-            preview: FONT.symbol(SYM.ARROW_EAST) + '-000.0000000'
+            preview: FONT.symbol(SYM.GPS_LON) + '-000.0000000'
         },
         GPS_LAT: {
             name: 'GPS_LAT',
@@ -640,7 +649,7 @@ OSD.constants = {
             default_position: -1,
             draw_order: 440,
             positionable: true,
-            preview: FONT.symbol(SYM.ARROW_NORTH) + '-00.0000000 '
+            preview: FONT.symbol(SYM.GPS_LAT) + '-00.0000000 '
         },
         DEBUG: {
             name: 'DEBUG',
@@ -713,7 +722,7 @@ OSD.constants = {
             default_position: -1,
             draw_order: 250,
             positionable: true,
-            preview: '-00.0'
+            preview: FONT.symbol(SYM.PITCH) + '-00.0'
         },
         ROLL_ANGLE: {
             name: 'ROLL_ANGLE',
@@ -721,7 +730,7 @@ OSD.constants = {
             default_position: -1,
             draw_order: 260,
             positionable: true,
-            preview: '-00.0'
+            preview: FONT.symbol(SYM.ROLL) + '-00.0'
         },
         MAIN_BATT_USAGE: {
             name: 'MAIN_BATT_USAGE',
@@ -753,7 +762,7 @@ OSD.constants = {
             draw_order: 460,
             positionable: true,
             preview: function (osd_data) {
-                return '43' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE) + (semver.gte(CONFIG.apiVersion, "1.37.0") ? '    ' : '');
+                return FONT.symbol(SYM.HOMEFLAG) + '43' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE) + (semver.gte(CONFIG.apiVersion, "1.37.0") ? '    ' : '');
             }
         },
         NUMERICAL_HEADING: {
@@ -1871,7 +1880,7 @@ TABS.osd.initialize = function (callback) {
         // Open modal window
         OSD.GUI.fontManager = new jBox('Modal', {
             width: 720,
-            height: 420,
+            height: 440,
             closeButton: 'title',
             animation: false,
             attach: $('#fontmanager'),
@@ -2400,30 +2409,38 @@ TABS.osd.initialize = function (callback) {
         // init structs once, also clears current font
         FONT.initData();
 
+        // Some of these definitions are determined by version.
+        SYM.AH_CENTER_LINE = 0x26;
+        SYM.AH_CENTER_LINE_RIGHT = 0x27;
+        if(semver.gte(CONFIG.apiVersion, "1.42.0")) {
+            SYM.AH_CENTER_LINE = 0x7B;
+            SYM.AH_CENTER_LINE_RIGHT = 0x7D;
+        }
+
         fontPresetsElement.change(function (e) {
             var $font = $('.fontpresets option:selected');
-            $.get('./resources/osd/' + $font.data('font-file') + '.mcm', function (data) {
+            var fontver = 1;
+            if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+                fontver = 2;
+            }
+            $('.font-manager-version-info').text(i18n.getMessage('osdDescribeFontVersion' + fontver));
+            $.get('./resources/osd/' + fontver + '/' + $font.data('font-file') + '.mcm', function (data) {
                 FONT.parseMCMFontFile(data);
                 FONT.preview(fontPreviewElement);
                 LogoManager.drawPreview();
                 updateOsdView();
             });
         });
-
         // load the first font when we change tabs
-        var $font = $('.fontpresets option:selected');
-        $.get('./resources/osd/' + $font.data('font-file') + '.mcm', function (data) {
-            FONT.parseMCMFontFile(data);
-            FONT.preview(fontPreviewElement);
-            LogoManager.drawPreview();
-            updateOsdView();
-        });
+        fontPresetsElement.change();
+
 
         $('button.load_font_file').click(function () {
             FONT.openFontFile().then(function () {
                 FONT.preview(fontPreviewElement);
                 LogoManager.drawPreview();
                 updateOsdView();
+                $('.font-manager-version-info').text(i18n.getMessage('osdDescribeFontVersionCUSTOM'));
             }).catch(error => console.error(error));
         });
 
@@ -2431,7 +2448,7 @@ TABS.osd.initialize = function (callback) {
         $('a.flash_font').click(function () {
             if (!GUI.connect_lock) { // button disabled while flashing is in progress
                 $('a.flash_font').addClass('disabled');
-                $('.progressLabel').text('Uploading...');
+                $('.progressLabel').text(i18n.getMessage('osdSetupUploadingFont'));
                 FONT.upload($('.progress').val(0)).then(function () {
                     var msg = 'Uploaded all ' + FONT.data.characters.length + ' characters';
                     console.log(msg);

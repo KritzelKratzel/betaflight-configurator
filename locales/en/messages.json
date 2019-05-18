@@ -789,6 +789,10 @@
         "message": "Runway Takeoff Prevention has been triggered",
         "description": "Description of the RUNAWAY_TAKEOFF arming disable flag"
     },
+    "initialSetupArmingDisableFlagsTooltipCRASH": {
+        "message": "Disarmed via crash detection",
+        "description": "Description of the CRASH arming disable flag"
+    },
     "initialSetupArmingDisableFlagsTooltipTHROTTLE": {
         "message": "Throttle channel is too high",
         "description": "Description of the THROTTLE arming disable flag"
@@ -1258,7 +1262,7 @@
         "message": "<strong>Note:</strong> Make sure your FC is able to operate at these speeds! Check CPU and cycletime stability. Changing this may require PID re-tuning. TIP: Disable Accelerometer and other sensors to gain more performance."
     },
     "configurationLoopTimeNo32KhzHelp": {
-        "message": "$t(configurationLoopTimeHelp.message)<br><strong>Note about 32 kHz gyro gyro sampling mode:</strong> Support for 32 kHz gyro gyro sampling mode was added to Betaflight as an experimental feature. In the years that it was available, it has never shown that it has any advantage over 8 kHz gyro sampling mode, due to its susceptibility to vibrations, and its high noise level which require aggressive filtering, causing delays in the control loop. For this reason, <strong>support for 32 kHz gyro sampling mode has been dropped</strong> in Betaflight 4.0."
+        "message": "$t(configurationLoopTimeHelp.message)<br><strong>Note about 32 kHz gyro sampling mode:</strong> Support for 32 kHz gyro sampling mode was added to Betaflight as an experimental feature. In the years that it was available, it has never shown that it has any advantage over 8 kHz gyro sampling mode, due to its susceptibility to vibrations, and its high noise level which require aggressive filtering, causing delays in the control loop. For this reason, <strong>support for 32 kHz gyro sampling mode has been dropped</strong> in Betaflight 4.0."
     },
     "configurationGPS": {
         "message": "GPS"
@@ -2655,6 +2659,9 @@
     "firmwareFlasherFirmwareLocalLoaded": {
         "message": "Loaded Local Firmware: ($1 bytes)"
     },
+    "firmwareFlasherFirmwareOnlineLoaded": {
+        "message": "Loaded Online Firmware: ($1 bytes)"
+    },
     "firmwareFlasherHexCorrupted": {
         "message": "HEX file appears to be corrupted"
     },
@@ -3569,7 +3576,7 @@
         "message": "OSD"
     },
     "osdSetupPreviewHelp": {
-        "message": "<strong>Note:</strong> OSD preview may not show the actual font that is installed on the flight controller."
+        "message": "<strong>Note:</strong> OSD preview may not show the actual font that is installed on the flight controller. The layout of individual elements may look different when older versions of the firmware are used - please check the look through your goggles before flying."
     },
     "osdSetupUnsupportedNote1": {
         "message": "Your flight controller isn't responding to OSD commands. This probably means that it does not have an integrated BetaFlight OSD."
@@ -3670,6 +3677,10 @@
     "osdSetupUploadFont": {
         "message": "Upload Font"
     },
+    "osdSetupUploadingFont": {
+        "message": "Uploading..."
+    },
+    
     "osdSetupSave": {
         "message": "Save"
     },
@@ -3949,7 +3960,17 @@
     "osdDescStatTotalFlightDistance": {
         "message": "Total distance traveled"
     },
-    
+
+    "osdDescribeFontVersion1": {
+        "message": "Font version: 1 (Betaflight 4.0 or older)"
+    },
+    "osdDescribeFontVersion2": {
+        "message": "Font version: 2 (Betaflight 4.1 or newer)"
+    },
+    "osdDescribeFontVersionCUSTOM": {
+        "message": "Font version: user provided"
+    },
+
     "osdTimerSource": {
       "message": "Source:"
     },
