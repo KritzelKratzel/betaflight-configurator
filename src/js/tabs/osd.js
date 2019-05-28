@@ -298,6 +298,9 @@ OSD.generateTimerPreview = function (osd_data, timer_index) {
         case 1:
             preview += '00:00.00';
             break;
+        case 2:
+            preview += '00:00.0';
+            break;
     }
     return preview;
 };
@@ -394,7 +397,8 @@ OSD.constants = {
     ],
     TIMER_PRECISION: [
         'SECOND',
-        'HUNDREDTH'
+        'HUNDREDTH',
+        'TENTH'
     ],
     AHISIDEBARWIDTHPOSITION: 7,
     AHISIDEBARHEIGHTPOSITION: 3,
@@ -592,7 +596,7 @@ OSD.constants = {
             draw_order: 160,
             positionable: true,
             preview: function (osd_data) {
-                return FONT.symbol(SYM.ALTITUDE) + ' 399.7' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE);
+                return FONT.symbol(SYM.ALTITUDE) + '399.7' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE);
             }
         },
         ONTIME: {
@@ -621,7 +625,7 @@ OSD.constants = {
             name: 'GPS_SPEED',
             desc: 'osdDescElementGPSSpeed',
             default_position: -1,
-            draw_order: 430,
+            draw_order: 810,
             positionable: true,
             preview: function (osd_data) {
                 return ' 40' + (osd_data.unit_mode === 0 ? FONT.symbol(SYM.MPH) : FONT.symbol(SYM.KPH));
@@ -631,7 +635,7 @@ OSD.constants = {
             name: 'GPS_SATS',
             desc: 'osdDescElementGPSSats',
             default_position: -1,
-            draw_order: 420,
+            draw_order: 800,
             positionable: true,
             preview: FONT.symbol(SYM.GPS_SAT_L) + FONT.symbol(SYM.GPS_SAT_R) + '14'
         },
@@ -639,7 +643,7 @@ OSD.constants = {
             name: 'GPS_LON',
             desc: 'osdDescElementGPSLon',
             default_position: -1,
-            draw_order: 450,
+            draw_order: 830,
             positionable: true,
             preview: FONT.symbol(SYM.GPS_LON) + '-000.0000000'
         },
@@ -647,7 +651,7 @@ OSD.constants = {
             name: 'GPS_LAT',
             desc: 'osdDescElementGPSLat',
             default_position: -1,
-            draw_order: 440,
+            draw_order: 820,
             positionable: true,
             preview: FONT.symbol(SYM.GPS_LAT) + '-00.0000000 '
         },
@@ -751,7 +755,7 @@ OSD.constants = {
             name: 'HOME_DIRECTION',
             desc: 'osdDescElementHomeDirection',
             default_position: -1,
-            draw_order: 470,
+            draw_order: 850,
             positionable: true,
             preview: FONT.symbol(SYM.ARROW_SOUTH + 2)
         },
@@ -759,7 +763,7 @@ OSD.constants = {
             name: 'HOME_DISTANCE',
             desc: 'osdDescElementHomeDistance',
             default_position: -1,
-            draw_order: 460,
+            draw_order: 840,
             positionable: true,
             preview: function (osd_data) {
                 return FONT.symbol(SYM.HOMEFLAG) + '43' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE) + (semver.gte(CONFIG.apiVersion, "1.37.0") ? '    ' : '');
@@ -805,7 +809,7 @@ OSD.constants = {
             name: 'ESC_TEMPERATURE',
             desc: 'osdDescElementEscTemperature',
             default_position: -1,
-            draw_order: 480,
+            draw_order: 900,
             positionable: true,
             preview: function (osd_data) {
                 return "E" + OSD.generateTemperaturePreview(osd_data, 45);
@@ -815,7 +819,7 @@ OSD.constants = {
             name: 'ESC_RPM',
             desc: 'osdDescElementEscRpm',
             default_position: -1,
-            draw_order: 490,
+            draw_order: 1000,
             positionable: true,
             preview: [ "22600", "22600", "22600", "22600"]
         },
@@ -831,7 +835,7 @@ OSD.constants = {
             name: 'RTC_DATE_TIME',
             desc: 'osdDescElementRtcDateTime',
             default_position: -1,
-            draw_order: 500,
+            draw_order: 360,
             positionable: true,
             preview: '2017-11-11 16:20:00'
         },
@@ -839,7 +843,7 @@ OSD.constants = {
             name: 'ADJUSTMENT_RANGE',
             desc: 'osdDescElementAdjustmentRange',
             default_position: -1,
-            draw_order: 510,
+            draw_order: 370,
             positionable: true,
             preview: 'PITCH/ROLL P: 42'
         },
@@ -867,7 +871,7 @@ OSD.constants = {
             name: 'CORE_TEMPERATURE',
             desc: 'osdDescElementCoreTemperature',
             default_position: -1,
-            draw_order: 520,
+            draw_order: 380,
             positionable: true,
             preview: function (osd_data) {
                 return "C" + OSD.generateTemperaturePreview(osd_data, 33);
@@ -893,7 +897,7 @@ OSD.constants = {
             name: 'MOTOR_DIAGNOSTICS',
             desc: 'osdDescElementMotorDiag',
             default_position: -1,
-            draw_order: 325,
+            draw_order: 335,
             positionable: true,
             preview: FONT.symbol(0x84)
                 + FONT.symbol(0x85)
@@ -920,7 +924,7 @@ OSD.constants = {
             name: 'LINK_QUALITY',
             desc: 'osdDescElementLinkQuality',
             default_position: -1,
-            draw_order: 350,
+            draw_order: 390,
             positionable: true,
             preview: '8'
         },
@@ -928,7 +932,7 @@ OSD.constants = {
             name: 'FLIGHT_DISTANCE',
             desc: 'osdDescElementFlightDist',
             default_position: -1,
-            draw_order: 360,
+            draw_order: 860,
             positionable: true,
             preview: function (osd_data) {
                 return '653' + FONT.symbol(osd_data.unit_mode === 0 ? SYM.FEET : SYM.METRE);
@@ -938,7 +942,7 @@ OSD.constants = {
             name: 'STICK_OVERLAY_LEFT',
             desc: 'osdDescElementStickOverlayLeft',
             default_position: -1,
-            draw_order: 370,
+            draw_order: 400,
             positionable: true,
             preview: OSD.drawStickOverlayPreview
         },
@@ -946,7 +950,7 @@ OSD.constants = {
             name: 'STICK_OVERLAY_RIGHT',
             desc: 'osdDescElementStickOverlayRight',
             default_position: -1,
-            draw_order: 370,
+            draw_order: 410,
             positionable: true,
             preview: OSD.drawStickOverlayPreview
         },
@@ -954,7 +958,7 @@ OSD.constants = {
             name: 'DISPLAY_NAME',
             desc: 'osdDescElementDisplayName',
             default_position: -77,
-            draw_order: 380,
+            draw_order: 350,
             positionable: true,
             preview: function(osd_data) {
                 return OSD.generateDisplayName(osd_data, 1);
@@ -964,9 +968,33 @@ OSD.constants = {
             name: 'ESC_RPM_FREQ',
             desc: 'osdDescElementEscRpmFreq',
             default_position: -1,
-            draw_order: 390,
+            draw_order: 1010,
             positionable: true,
             preview: [ "22600", "22600", "22600", "22600"]
+        },
+        RATE_PROFILE_NAME: {
+            name: 'RATE_PROFILE_NAME',
+            desc: 'osdDescElementRateProfileName',
+            default_position: -1,
+            draw_order: 420,
+            positionable: true,
+            preview: 'RATE_1'
+        },
+        PID_PROFILE_NAME: {
+            name: 'PID_PROFILE_NAME',
+            desc: 'osdDescElementPidProfileName',
+            default_position: -1,
+            draw_order: 430,
+            positionable: true,
+            preview: 'PID_1'
+        },
+        OSD_PROFILE_NAME: {
+            name: 'OSD_PROFILE_NAME',
+            desc: 'osdDescElementOsdProfileName',
+            default_position: -1,
+            draw_order: 440,
+            positionable: true,
+            preview: 'OSD_1'
         },
     },
     UNKNOWN_DISPLAY_FIELD: {
@@ -1279,6 +1307,13 @@ OSD.chooseFields = function () {
                                                 F.DISPLAY_NAME,
                                                 F.ESC_RPM_FREQ
                                             ]);
+                                            if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+                                                OSD.constants.DISPLAY_FIELDS = OSD.constants.DISPLAY_FIELDS.concat([
+                                                    F.RATE_PROFILE_NAME,
+                                                    F.PID_PROFILE_NAME,
+                                                    F.OSD_PROFILE_NAME
+                                                ]);
+                                            }
                                         }
                                     }
                                 }
@@ -2162,6 +2197,37 @@ TABS.osd.initialize = function (callback) {
                     // Select the current OSD profile
                     osdProfileActive_e.val(OSD.data.osd_profiles.selected);
 
+                    // Populate the fonts selector preview
+                    let osdFontSelector_e = $('.osdfont-selector');
+                    let osdFontPresetsSelector_e = $('.fontpresets');
+                    if (osdFontSelector_e.children().length == 0) {
+
+                        // Custom font selected by the user
+                        var option = $('<option>', {
+                            text: i18n.getMessage("osdSetupFontPresetsSelectorCustomOption"),
+                            value: -1,
+                            "disabled": "disabled",
+                            "style":"display: none;",
+                        });
+                        osdFontSelector_e.append($(option));
+
+                        // Standard fonts
+                        OSD.constants.FONT_TYPES.forEach(function (e, i) {
+                            let optionText = i18n.getMessage('osdSetupPreviewSelectFontElement', {fontName : e.name});
+                            osdFontSelector_e.append(new Option(optionText, e.file));
+                        });
+
+                        osdFontSelector_e.change(function() {
+                            // Change the font selected in the Font Manager, in this way it is easier to flash if the user likes it
+                            osdFontPresetsSelector_e.val(this.value).change();
+                        });
+                    }
+
+                    // Select the same element than the Font Manager window
+                    osdFontSelector_e.val(osdFontPresetsSelector_e.val() != null ? osdFontPresetsSelector_e.val() : -1);
+                    // Hide custom if not used
+                    $('.osdfont-selector option[value=-1]').toggle(osdFontSelector_e.val() == -1);
+
                     // display fields on/off and position
                     var $displayFields = $('#element-fields').empty();
                     var enabledCount = 0;
@@ -2429,6 +2495,7 @@ TABS.osd.initialize = function (callback) {
                 FONT.preview(fontPreviewElement);
                 LogoManager.drawPreview();
                 updateOsdView();
+                $('.fontpresets option[value=-1]').hide();
             });
         });
         // load the first font when we change tabs
@@ -2441,6 +2508,8 @@ TABS.osd.initialize = function (callback) {
                 LogoManager.drawPreview();
                 updateOsdView();
                 $('.font-manager-version-info').text(i18n.getMessage('osdDescribeFontVersionCUSTOM'));
+                $('.fontpresets option[value=-1]').show();
+                $('.fontpresets').val(-1);
             }).catch(error => console.error(error));
         });
 
