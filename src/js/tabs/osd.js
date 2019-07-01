@@ -6,6 +6,7 @@ SYM.loadSymbols = function() {
     SYM.BLANK = 0x20;
     SYM.VOLT = 0x06;
     SYM.RSSI = 0x01;
+    SYM.LINK_QUALITY = 0x7B;
     SYM.AH_RIGHT = 0x02;
     SYM.AH_LEFT = 0x03;
     SYM.THR = 0x04;
@@ -72,6 +73,7 @@ SYM.loadSymbols = function() {
         SYM.AH_CENTER = 0x7E;
         SYM.AH_CENTER_LINE_RIGHT = 0x27;
         SYM.SPEED = null;
+        SYM.LINK_QUALITY = null;
     }
 }
 
@@ -983,7 +985,7 @@ OSD.loadDisplayFields = function() {
             default_position: -1,
             draw_order: 390,
             positionable: true,
-            preview: '8'
+            preview: FONT.symbol(SYM.LINK_QUALITY) + '8'
         },
         FLIGHT_DIST: {
             name: 'FLIGHT_DISTANCE',
@@ -1111,104 +1113,134 @@ OSD.constants = {
     ALL_STATISTIC_FIELDS: {
         MAX_SPEED: {
             name: 'MAX_SPEED',
+            text: 'osdTextStatMaxSpeed',
             desc: 'osdDescStatMaxSpeed'
         },
         MIN_BATTERY: {
             name: 'MIN_BATTERY',
+            text: 'osdTextStatMinBattery',
             desc: 'osdDescStatMinBattery'
         },
         MIN_RSSI: {
             name: 'MIN_RSSI',
+            text: 'osdTextStatMinRssi',
             desc: 'osdDescStatMinRssi'
         },
         MAX_CURRENT: {
             name: 'MAX_CURRENT',
+            text: 'osdTextStatMaxCurrent',
             desc: 'osdDescStatMaxCurrent'
         },
         USED_MAH: {
             name: 'USED_MAH',
+            text: 'osdTextStatUsedMah',
             desc: 'osdDescStatUsedMah'
         },
         MAX_ALTITUDE: {
             name: 'MAX_ALTITUDE',
+            text: 'osdTextStatMaxAltitude',
             desc: 'osdDescStatMaxAltitude'
         },
         BLACKBOX: {
             name: 'BLACKBOX',
+            text: 'osdTextStatBlackbox',
             desc: 'osdDescStatBlackbox'
         },
         END_BATTERY: {
             name: 'END_BATTERY',
+            text: 'osdTextStatEndBattery',
             desc: 'osdDescStatEndBattery'
         },
         FLYTIME: {
             name: 'FLY_TIME',
+            text: 'osdTextStatFlyTime',
             desc: 'osdDescStatFlyTime'
         },
         ARMEDTIME: {
             name: 'ARMED_TIME',
+            text: 'osdTextStatArmedTime',
             desc: 'osdDescStatArmedTime'
         },
         MAX_DISTANCE: {
             name: 'MAX_DISTANCE',
+            text: 'osdTextStatMaxDistance',
             desc: 'osdDescStatMaxDistance'
         },
         BLACKBOX_LOG_NUMBER: {
             name: 'BLACKBOX_LOG_NUMBER',
+            text: 'osdTextStatBlackboxLogNumber',
             desc: 'osdDescStatBlackboxLogNumber'
         },
         TIMER_1: {
             name: 'TIMER_1',
+            text: 'osdTextStatTimer1',
             desc: 'osdDescStatTimer1'
         },
         TIMER_2: {
             name: 'TIMER_2',
+            text: 'osdTextStatTimer2',
             desc: 'osdDescStatTimer2'
         },
         RTC_DATE_TIME: {
             name: 'RTC_DATE_TIME',
+            text: 'osdTextStatRtcDateTime',
             desc: 'osdDescStatRtcDateTime'
         },
         STAT_BATTERY: {
             name: 'BATTERY_VOLTAGE',
+            text: 'osdTextStatBattery',
             desc: 'osdDescStatBattery'
         },
         MAX_G_FORCE: {
             name: 'MAX_G_FORCE',
+            text: 'osdTextStatGForce',
             desc: 'osdDescStatGForce'
         },
         MAX_ESC_TEMP: {
             name: 'MAX_ESC_TEMP',
+            text: 'osdTextStatEscTemperature',
             desc: 'osdDescStatEscTemperature'
         },
         MAX_ESC_RPM: {
             name: 'MAX_ESC_RPM',
+            text: 'osdTextStatEscRpm',
             desc: 'osdDescStatEscRpm'
         },
         MIN_LINK_QUALITY: {
             name: 'MIN_LINK_QUALITY',
+            text: 'osdTextStatMinLinkQuality',
             desc: 'osdDescStatMinLinkQuality'
         },
         FLIGHT_DISTANCE: {
             name: 'FLIGHT_DISTANCE',
-            desc: 'osdDescStatFlightDistance'
+            text: 'osdTextStatFlightDistance',
+            desc: 'osdTextStatFlightDistance'
         },
         MAX_FFT: {
             name: 'MAX_FFT',
+            text: 'osdTextStatMaxFFT',
             desc: 'osdDescStatMaxFFT'
         },
         TOTAL_FLIGHTS: {
             name: 'TOTAL_FLIGHTS',
+            text: 'osdTextStatTotalFlights',
             desc: 'osdDescStatTotalFlights'
         },
         TOTAL_FLIGHT_TIME: {
             name: 'TOTAL_FLIGHT_TIME',
+            text: 'osdTextStatTotalFlightTime',
             desc: 'osdDescStatTotalFlightTime'
         },
         TOTAL_FLIGHT_DIST: {
             name: 'TOTAL_FLIGHT_DIST',
+            text: 'osdTextStatTotalFlightDistance',
             desc: 'osdDescStatTotalFlightDistance'
-        }
+        },
+        MIN_RSSI_DBM: {
+            name: 'MIN_RSSI_DBM',
+            text: 'osdTextStatMinRssiDbm',
+            desc: 'osdDescStatMinRssiDbm'
+        },
     },
     ALL_WARNINGS: {
         ARMING_DISABLED: {
@@ -1534,7 +1566,8 @@ OSD.chooseFields = function () {
             OSD.constants.STATISTIC_FIELDS = OSD.constants.STATISTIC_FIELDS.concat([
                 F.TOTAL_FLIGHTS,
                 F.TOTAL_FLIGHT_TIME,
-                F.TOTAL_FLIGHT_DIST
+                F.TOTAL_FLIGHT_DIST,
+                F.MIN_RSSI_DBM
             ]);
         }
     }
@@ -1791,23 +1824,28 @@ OSD.msp = {
             if (expectedStatsCount != OSD.constants.STATISTIC_FIELDS.length) {
                 console.error("Firmware is transmitting a different number of statistics (" + expectedStatsCount + ") to what the configurator is expecting (" + OSD.constants.STATISTIC_FIELDS.length + ")");
             }
-            while (view.offset < view.byteLength && d.stat_items.length < OSD.constants.STATISTIC_FIELDS.length) {
-                var v = view.readU8();
-                var j = d.stat_items.length;
-                var c = OSD.constants.STATISTIC_FIELDS[j];
-                d.stat_items.push({
-                    name: c.name,
-                    text: c.text,
-                    desc: c.desc,
-                    index: j,
-                    enabled: v === 1
-                });
-                expectedStatsCount--;
-            }
-            // Read all the data for any statistics we don't know about
-            while (expectedStatsCount > 0) {
-                view.readU8();
-                expectedStatsCount--;
+            
+            for (var i = 0; i < expectedStatsCount; i++) {
+
+                let v = view.readU8();
+
+                // Known statistics field
+                if (i < OSD.constants.STATISTIC_FIELDS.length) {
+
+                    let c = OSD.constants.STATISTIC_FIELDS[i];
+                    d.stat_items.push({
+                        name: c.name,
+                        text: c.text,
+                        desc: c.desc,
+                        index: i,
+                        enabled: v === 1
+                    });
+
+                // Read all the data for any statistics we don't know about
+                } else {
+                    let statisticNumber = i - OSD.constants.STATISTIC_FIELDS.length + 1;
+                    d.stat_items.push({name: 'UNKNOWN', text: ['osdTextStatUnknown', statisticNumber], desc: 'osdDescStatUnknown', index: i, enabled: v === 1 });
+                }
             }
 
             // Parse configurable timers
@@ -2066,11 +2104,11 @@ TABS.osd.initialize = function (callback) {
         $('.warnings-container div.cf_tip').attr('title', i18n.getMessage('osdSectionHelpWarnings'));
 
         function titleizeField(field) {
-            let finalFieldName = inflection.titleize(field.name); 
+            let finalFieldName = null; 
             if (field.text) {
                 if (Array.isArray(field.text) && i18n.existsMessage(field.text[0])) {
                     finalFieldName = i18n.getMessage(field.text[0], field.text.slice(1));
-                } else if (i18n.existsMessage(field.text)) {
+                } else {
                     finalFieldName = i18n.getMessage(field.text);
                 }
             }
@@ -2078,16 +2116,20 @@ TABS.osd.initialize = function (callback) {
         }
 
         function insertOrdered(fieldList, field) {
-            let added = false;
-            fieldList.children().each(function() {
-                if ($(this).text().localeCompare(field.text(), i18n.getCurrentLocale(), { sensitivity: 'base' }) > 0) {
-                    $(this).before(field);
-                    added = true;
-                    return false;
-                }
-            });
-            if(!added) {
+            if (field.name == 'UNKNOWN') {
                 fieldList.append(field);
+            } else {
+                let added = false;
+                fieldList.children().each(function() {
+                    if ($(this).text().localeCompare(field.text(), i18n.getCurrentLocale(), { sensitivity: 'base' }) > 0) {
+                        $(this).before(field);
+                        added = true;
+                        return false;
+                    }
+                });
+                if(!added) {
+                    fieldList.append(field);
+                }
             }
         }
 
@@ -2273,9 +2315,10 @@ TABS.osd.initialize = function (callback) {
                                                 });
                                         })
                                 );
-                                $field.append('<label for="' + field.name + '" class="char-label">' + inflection.titleize(field.name) + '</label>');
+                                $field.append('<label for="' + field.name + '" class="char-label">' + titleizeField(field) + '</label>');
 
-                                $statsFields.append($field);
+                                // Insert in alphabetical order, with unknown fields at the end
+                                insertOrdered($statsFields, $field);
                             }
 
                             // Warnings
@@ -2312,11 +2355,8 @@ TABS.osd.initialize = function (callback) {
                                 $field.append('<label for="' + field.name + '" class="char-label">' + finalFieldName + '</label>');
 
                                 // Insert in alphabetical order, with unknown fields at the end
-                                if (field.name == 'UNKNOWN') {
-                                    $warningFields.append($field);
-                                } else {
-                                    insertOrdered($warningFields, $field);
-                                }
+                                insertOrdered($warningFields, $field);
+
                             }
                         }
                     }
@@ -2446,11 +2486,8 @@ TABS.osd.initialize = function (callback) {
                         }
 
                         // Insert in alphabetical order, with unknown fields at the end
-                        if (field.name == OSD.constants.UNKNOWN_DISPLAY_FIELD.name) {
-                            $displayFields.append($field);
-                        } else {
-                            insertOrdered($displayFields, $field);
-                        }
+                        insertOrdered($displayFields, $field);
+
                     }
 
                     GUI.switchery();
