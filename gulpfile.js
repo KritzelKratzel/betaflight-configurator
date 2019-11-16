@@ -1,6 +1,8 @@
 'use strict';
 
-const pkg = require('./package.json');
+var pkg = require('./package.json');
+// remove gulp-appdmg from the package.json we're going to write
+delete pkg.optionalDependencies['gulp-appdmg'];
 
 const child_process = require('child_process');
 const fs = require('fs');
@@ -23,6 +25,8 @@ const yarn = require("gulp-yarn");
 const rename = require('gulp-rename');
 const os = require('os');
 const git = require('gulp-git');
+const source = require('vinyl-source-stream');
+const stream = require('stream');
 
 const DIST_DIR = './dist/';
 const APPS_DIR = './apps/';
@@ -31,8 +35,11 @@ const RELEASE_DIR = './release/';
 
 const LINUX_INSTALL_DIR = '/opt/betaflight';
 
+// Global variable to hold the change hash from when we get it, to when we use it.
+var gitChangeSetId;
+
 var nwBuilderOptions = {
-    version: '0.36.4',
+    version: '0.42.2',
     files: './dist/**/*',
     macIcns: './src/images/bf_icon.icns',
     macPlist: { 'CFBundleDisplayName': 'Betaflight Configurator'},
@@ -63,9 +70,12 @@ gulp.task('clean-release', clean_release);
 
 gulp.task('clean-cache', clean_cache);
 
+// Function definitions are processed before function calls.
+const getChangesetId = gulp.series(getHash, writeChangesetId);
 gulp.task('get-changeset-id', getChangesetId);
 
-var distBuild = gulp.series(dist_src, dist_locale, dist_libraries, dist_resources, getChangesetId);
+// dist_yarn MUST be done after dist_src
+var distBuild = gulp.series(dist_src, dist_changelog, dist_yarn, dist_locale, dist_libraries, dist_resources, getChangesetId);
 var distRebuild = gulp.series(clean_dist, distBuild);
 gulp.task('dist', distRebuild);
 
@@ -96,10 +106,13 @@ function getInputPlatforms() {
     for (var i = 3; i < process.argv.length; i++) {
         var arg = process.argv[i].match(regEx)[1];
         if (supportedPlatforms.indexOf(arg) > -1) {
-             platforms.push(arg);
+            platforms.push(arg);
+        } else if (arg == 'nowinicon') {
+            console.log('ignoring winIco')
+            delete nwBuilderOptions['winIco'];
         } else {
-             console.log('Unknown platform: ' + arg);
-             process.exit();
+            console.log('Unknown platform: ' + arg);
+            process.exit();
         }
     }
 
@@ -193,23 +206,23 @@ function getReleaseFilename(platform, ext) {
 
 function clean_dist() {
     return del([DIST_DIR + '**'], { force: true });
-};
+}
 
 function clean_apps() {
     return del([APPS_DIR + '**'], { force: true });
-};
+}
 
 function clean_debug() {
     return del([DEBUG_DIR + '**'], { force: true });
-};
+}
 
 function clean_release() {
     return del([RELEASE_DIR + '**'], { force: true });
-};
+}
 
 function clean_cache() {
     return del(['./cache/**'], { force: true });
-};
+}
 
 // Real work for dist task. Done in another task to call it via
 // run-sequence.
@@ -217,21 +230,33 @@ function dist_src() {
     var distSources = [
         './src/**/*',
         '!./src/css/dropdown-lists/LICENSE',
-        '!./src/css/font-awesome/css/font-awesome.css',
-        '!./src/css/opensans_webfontkit/*.{txt,html}',
         '!./src/support/**'
     ];
+    var packageJson = new stream.Readable;
+    packageJson.push(JSON.stringify(pkg,undefined,2));
+    packageJson.push(null);
 
-    return gulp.src(distSources, { base: 'src' })
+    return packageJson
+        .pipe(source('package.json'))
+        .pipe(gulp.src(distSources, { base: 'src' }))
         .pipe(gulp.src('manifest.json', { passthrougth: true }))
-        .pipe(gulp.src('package.json', { passthrougth: true }))
-        .pipe(gulp.src('changelog.html', { passthrougth: true }))
-        .pipe(gulp.dest(DIST_DIR))
+        .pipe(gulp.src('yarn.lock', { passthrougth: true }))
+        .pipe(gulp.dest(DIST_DIR));
+}
+
+function dist_changelog() {
+    return gulp.src('changelog.html')
+        .pipe(gulp.dest(DIST_DIR+"tabs/"));
+}
+
+// This function relies on files from the dist_src function
+function dist_yarn() {
+    return gulp.src(['./dist/package.json', './dist/yarn.lock'])
+        .pipe(gulp.dest('./dist'))
         .pipe(yarn({
-            production: true,
-            ignoreScripts: true
+            production: true
         }));
-};
+}
 
 function dist_locale() {
     return gulp.src('./locales/**/*', { base: 'locales'})
@@ -244,7 +269,7 @@ function dist_libraries() {
 }
 
 function dist_resources() {
-    return gulp.src('./resources/**/*', { base: '.'})
+    return gulp.src(['./resources/**/*', '!./resources/osd/**/*.png'], { base: '.'})
         .pipe(gulp.dest(DIST_DIR));
 }
 
@@ -439,22 +464,27 @@ function buildNWApps(platforms, flavor, dir, done) {
     }
 }
 
-function getChangesetId(done) {
-    git.exec({args : 'log -1 --format="%h"'}, function (err, stdout) {
-        var version;
+function getHash(cb) {
+    git.revParse({args: '--short HEAD'}, function (err, hash) {
         if (err) {
-            version = 'unsupported';
+            gitChangeSetId = 'unsupported';
         } else {
-            version = stdout.trim();
+            gitChangeSetId = hash;
         }
-
-        var versionData = { gitChangesetId: version }
-        var destFile = path.join(DIST_DIR, 'version.json');
-
-        fs.writeFile(destFile, JSON.stringify(versionData) , function () {
-            done();
-        });
+        cb();
     });
+}
+
+function writeChangesetId() {
+    var versionJson = new stream.Readable;
+    versionJson.push(JSON.stringify({
+        gitChangesetId: gitChangeSetId,
+        version: pkg.version
+        }, undefined, 2));
+    versionJson.push(null);
+    return versionJson
+        .pipe(source('version.json'))
+        .pipe(gulp.dest(DIST_DIR))
 }
 
 function start_debug(done) {
@@ -571,9 +601,11 @@ function release_rpm(arch, done) {
     // The buildRpm does not generate the folder correctly, manually
     createDirIfNotExists(RELEASE_DIR);
 
+    var regex = /-/g;
+
     var options = {
              name: pkg.name,
-             version: pkg.version,
+             version: pkg.version.replace(regex, '_'), // RPM does not like release candidate versions
              buildArch: getLinuxPackageArch('rpm', arch),
              vendor: pkg.author,
              summary: pkg.description,

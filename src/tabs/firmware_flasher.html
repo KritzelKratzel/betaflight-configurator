@@ -26,7 +26,7 @@
                         <td><select name="board">
                                 <option value="0" i18n="firmwareFlasherOptionLoading">Loading ...</option>
                         </select></td>
-                        <td><span class="description" i18n="firmwareFlasherOnlineSelectBoardDescription"></span></td>
+                        <td><span class="description" i18n="firmwareFlasherOnlineSelectBoardDescription"></span><div class="helpicon cf_tip_wide" i18n_title="firmwareFlasherOnlineSelectBoardHint"/></td>
                     </tr>
                     <tr>
                         <td><select name="firmware_version">
@@ -88,13 +88,24 @@
                     i18n="firmwareFlasherReleaseSummaryHead"></div>
             </div>
             <div class="spacer" style="margin-bottom: 10px;">
-                <strong i18n="firmwareFlasherReleaseTarget"></strong> <span class="target"></span><br /> <strong
-                    i18n="firmwareFlasherReleaseName"></strong> <a i18n_title="firmwareFlasherReleaseVersionUrl" class="name"
-                    href="#" target="_blank"></a><br /> <strong i18n="firmwareFlasherReleaseFile"></strong> <a
-                    i18n_title="firmwareFlasherReleaseFileUrl" class="file" href="#" target="_blank"></a><br /> <strong
-                    i18n="firmwareFlasherReleaseDate"></strong> <span class="date"></span><br /> <strong
-                    i18n="firmwareFlasherReleaseStatus"></strong> <span class="status"></span><br /> <strong
-                    i18n="firmwareFlasherReleaseNotes"></strong>
+                <strong i18n="firmwareFlasherReleaseTarget"></strong>
+                <span class="target"></span>
+                <br />
+                <div id="manufacturerInfo">
+                    <strong i18n="firmwareFlasherReleaseManufacturer"></strong>
+                    <span id="manufacturer"></span>
+                    <br />
+                </div>
+                <strong i18n="firmwareFlasherReleaseVersion"></strong>
+                <a i18n_title="firmwareFlasherReleaseVersionUrl" class="name" href="#" target="_blank"></a>
+                <br />
+                <strong i18n="firmwareFlasherReleaseFile"></strong>
+                <a i18n_title="firmwareFlasherReleaseFileUrl" class="file" href="#" target="_blank"></a>
+                <br />
+                <strong i18n="firmwareFlasherReleaseDate"></strong>
+                <span class="date"></span>
+                <br />
+                <strong i18n="firmwareFlasherReleaseNotes"></strong>
                 <div class=notes></div>
             </div>
         </div>
@@ -125,7 +136,7 @@
     <div class="content_toolbar">
         <div class="info"><a name="progressbar"></a>
             <progress class="progress" value="0" min="0" max="100"></progress>
-            <span class="progressLabel" i18n="firmwareFlasherLoadFirmwareFile"></span>
+            <span class="progressLabel"></span>
         </div>
         <div class="btn">
             <a class="flash_firmware disabled" href="#progressbar" i18n="firmwareFlasherFlashFirmware"></a>

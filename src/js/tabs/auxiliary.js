@@ -397,12 +397,13 @@ TABS.auxiliary.initialize = function (callback) {
         });
 
        
-        function box_highlight(auxChannelIndex, channelPosition) {
+        function limit_channel(channelPosition) {
             if (channelPosition < 900) {
                 channelPosition = 900;
             } else if (channelPosition > 2100) {
                 channelPosition = 2100;
             }
+            return channelPosition;
         }
         
         function update_marker(auxChannelIndex, channelPosition) {
@@ -429,14 +430,46 @@ TABS.auxiliary.initialize = function (callback) {
                 let modeElement = $('#mode-' + i);
                 if (modeElement.find(' .range').length == 0 && modeElement.find(' .link').length == 0) {
                     // if the mode is unused, skip it
-                    modeElement.removeClass('off').removeClass('on');
+                    modeElement.removeClass('off').removeClass('on').removeClass('disabled');
                     continue;
                 }
                 
                 if (bit_check(CONFIG.mode, i)) {
-                    $('.mode .name').eq(i).data('modeElement').addClass('on').removeClass('off');
+                    $('.mode .name').eq(i).data('modeElement').addClass('on').removeClass('off').removeClass('disabled');
+
+                    // ARM mode is a special case
+                    if (i == 0) {
+                        $('.mode .name').eq(i).html(AUX_CONFIG[i]);
+                    }
                 } else {
-                    $('.mode .name').eq(i).data('modeElement').removeClass('on').addClass('off');
+
+                    //ARM mode is a special case
+                    if (i == 0) {
+                        var armSwitchActive = false;
+                        
+                        if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+                            if (CONFIG.armingDisableCount > 0) {
+                                // check the highest bit of the armingDisableFlags. This will be the ARMING_DISABLED_ARMSWITCH flag.
+                                var armSwitchMask = 1 << (CONFIG.armingDisableCount - 1);
+                                if ((CONFIG.armingDisableFlags & armSwitchMask) > 0) {
+                                    armSwitchActive = true;
+                                }
+                            }
+                        }
+
+                        // If the ARMING_DISABLED_ARMSWITCH flag is set then that means that arming is disabled
+                        // and the arm switch is in a valid arming range. Highlight the mode in red to indicate
+                        // that arming is disabled.
+                        if (armSwitchActive) {
+                            $('.mode .name').eq(i).data('modeElement').removeClass('on').removeClass('off').addClass('disabled');
+                            $('.mode .name').eq(i).html(AUX_CONFIG[i] + '<br>' + i18n.getMessage('auxiliaryDisabled'));
+                        } else {
+                            $('.mode .name').eq(i).data('modeElement').removeClass('on').removeClass('disabled').addClass('off');
+                            $('.mode .name').eq(i).html(AUX_CONFIG[i]);
+                        }
+                    } else {
+                        $('.mode .name').eq(i).data('modeElement').removeClass('on').removeClass('disabled').addClass('off');
+                    }
                 }
                 hasUsedMode = true;
             }
@@ -454,9 +487,9 @@ TABS.auxiliary.initialize = function (callback) {
             var auxChannelCount = RC.active_channels - 4;
 
             for (var i = 0; i < (auxChannelCount); i++) {
-                box_highlight(i, RC.channels[i + 4]);
-                update_marker(i, RC.channels[i + 4]);
+                update_marker(i, limit_channel(RC.channels[i + 4]));
             }
+
         }
 
         /**
@@ -498,11 +531,11 @@ TABS.auxiliary.initialize = function (callback) {
         }
 
         let hideUnusedModes = false;
-        chrome.storage.local.get('hideUnusedModes', function (result) {
+        ConfigStorage.get('hideUnusedModes', function (result) {
             $("input#switch-toggle-unused")
                 .change(function() {
                     hideUnusedModes = $(this).prop("checked");
-                    chrome.storage.local.set({ hideUnusedModes: hideUnusedModes });
+                    ConfigStorage.set({ hideUnusedModes: hideUnusedModes });
                     update_ui();
                 })
                 .prop("checked", !!result.hideUnusedModes)

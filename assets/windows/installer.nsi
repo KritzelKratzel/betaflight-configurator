@@ -18,6 +18,7 @@
 !define FILE_NAME_UNINSTALLER "uninstall-betaflight-configurator.exe"
 !define FILE_NAME_EXECUTABLE  "betaflight-configurator.exe"
 !define LICENSE               "..\..\LICENSE"
+!define MUI_WELCOMEFINISHPAGE_BITMAP ".\bf_installer.bmp"
 
 
 Name "${APP_NAME}"
@@ -46,6 +47,7 @@ OutFile "..\..\${DEST_FOLDER}\${FILE_NAME_INSTALLER}"
 
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "Basque"
 !insertmacro MUI_LANGUAGE "Catalan"
 !insertmacro MUI_LANGUAGE "Croatian"
 !insertmacro MUI_LANGUAGE "French"
@@ -152,9 +154,9 @@ Section
 
     # create shortcuts in the start menu and on the desktop
     CreateDirectory "$SMPROGRAMS\${GROUP_NAME}\${FOLDER_NAME}"    
-    CreateShortCut "$SMPROGRAMS\${GROUP_NAME}\${FOLDER_NAME}\${APP_NAME}.lnk" "$INSTDIR\${FILE_NAME_EXECUTABLE}"
+    CreateShortCut "$SMPROGRAMS\${GROUP_NAME}\${FOLDER_NAME}\${APP_NAME}.lnk" "$INSTDIR\${FILE_NAME_EXECUTABLE}" "" "$INSTDIR\images\bf_icon.ico" "0" "" "" ""
     CreateShortCut "$SMPROGRAMS\${GROUP_NAME}\${FOLDER_NAME}\Uninstall ${APP_NAME}.lnk" "$INSTDIR\${FILE_NAME_UNINSTALLER}"
-    CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${FILE_NAME_EXECUTABLE}"
+    CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${FILE_NAME_EXECUTABLE}" "" "$INSTDIR\images\bf_icon.ico" "0" "" "" ""
 
     # include in add/remove programs
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" \

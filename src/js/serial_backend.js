@@ -24,10 +24,10 @@ function initializeSerialBackend() {
     GUI.updateManualPortVisibility();
 
     $('#port-override').change(function () {
-        chrome.storage.local.set({'portOverride': $('#port-override').val()});
+        ConfigStorage.set({'portOverride': $('#port-override').val()});
     });
 
-    chrome.storage.local.get('portOverride', function (data) {
+    ConfigStorage.get('portOverride', function (data) {
         $('#port-override').val(data.portOverride);
     });
 
@@ -90,20 +90,16 @@ function initializeSerialBackend() {
         if ($('div#flashbutton a.flash_state').hasClass('active') && $('div#flashbutton a.flash').hasClass('active')) {
             $('div#flashbutton a.flash_state').removeClass('active');
             $('div#flashbutton a.flash').removeClass('active');
-            document.getElementById("tab_landing").style.display = "block";
-            document.getElementById("tab_help").style.display = "block";
             $('#tabs ul.mode-disconnected .tab_landing a').click();
         } else {
             $('#tabs ul.mode-disconnected .tab_firmware_flasher a').click();
             $('div#flashbutton a.flash_state').addClass('active');
             $('div#flashbutton a.flash').addClass('active');
-            document.getElementById("tab_landing").style.display = "none";
-            document.getElementById("tab_help").style.display = "none";
         }
     });
 
     // auto-connect
-    chrome.storage.local.get('auto_connect', function (result) {
+    ConfigStorage.get('auto_connect', function (result) {
         if (result.auto_connect === 'undefined' || result.auto_connect) {
             // default or enabled by user
             GUI.auto_connect = true;
@@ -135,7 +131,7 @@ function initializeSerialBackend() {
                 if (!GUI.connected_to && !GUI.connecting_to) $('select#baud').prop('disabled', false);
             }
 
-            chrome.storage.local.set({'auto_connect': GUI.auto_connect});
+            ConfigStorage.set({'auto_connect': GUI.auto_connect});
         });
     });
 
@@ -201,15 +197,15 @@ function onOpen(openInfo) {
         GUI.log(i18n.getMessage('serialPortOpened', [openInfo.connectionId]));
 
         // save selected port with chrome.storage if the port differs
-        chrome.storage.local.get('last_used_port', function (result) {
+        ConfigStorage.get('last_used_port', function (result) {
             if (result.last_used_port) {
                 if (result.last_used_port != GUI.connected_to) {
                     // last used port doesn't match the one found in local db, we will store the new one
-                    chrome.storage.local.set({'last_used_port': GUI.connected_to});
+                    ConfigStorage.set({'last_used_port': GUI.connected_to});
                 }
             } else {
                 // variable isn't stored yet, saving
-                chrome.storage.local.set({'last_used_port': GUI.connected_to});
+                ConfigStorage.set({'last_used_port': GUI.connected_to});
             }
         });
 
@@ -262,6 +258,29 @@ function onOpen(openInfo) {
                                     updateStatusBarVersion(CONFIG.flightControllerVersion, CONFIG.flightControllerIdentifier, FC.getHardwareName());
                                     updateTopBarVersion(CONFIG.flightControllerVersion, CONFIG.flightControllerIdentifier, FC.getHardwareName());
 
+                                    if (bit_check(CONFIG.targetCapabilities, FC.TARGET_CAPABILITIES_FLAGS.SUPPORTS_CUSTOM_DEFAULTS) && bit_check(CONFIG.targetCapabilities, FC.TARGET_CAPABILITIES_FLAGS.HAS_CUSTOM_DEFAULTS) && CONFIG.configurationState === FC.CONFIGURATION_STATES.DEFAULTS_BARE) {
+                                        var dialog = $('#dialogResetToCustomDefaults')[0];
+
+                                        $('#dialogResetToCustomDefaults-content').html(i18n.getMessage('resetToCustomDefaultsDialog'));
+
+                                        $('#dialogResetToCustomDefaults-acceptbtn').click(function() {
+                                            analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'AcceptResetToCustomDefaults');
+
+                                            var buffer = [];
+                                            buffer.push(mspHelper.RESET_TYPES.CUSTOM_DEFAULTS);
+                                            MSP.send_message(MSPCodes.MSP_RESET_CONF, buffer, false);
+
+                                            dialog.close();
+                                        });
+
+                                        $('#dialogResetToCustomDefaults-cancelbtn').click(function() {
+                                            analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'CancelResetToCustomDefaults');
+
+                                            dialog.close();
+                                        });
+
+                                        dialog.showModal();
+                                    }
                                     MSP.send_message(MSPCodes.MSP_UID, false, false, function () {
                                         var uniqueDeviceIdentifier = CONFIG.uid[0].toString(16) + CONFIG.uid[1].toString(16) + CONFIG.uid[2].toString(16);
 
@@ -285,7 +304,7 @@ function onOpen(openInfo) {
                             });
                         });
                     } else {
-                        analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'ConnectionRefused');
+                        analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'ConnectionRefusedFirmwareType');
 
                         var dialog = $('.dialogConnectWarning')[0];
 
@@ -301,7 +320,7 @@ function onOpen(openInfo) {
                     }
                 });
             } else {
-                analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'ConnectionRefused');
+                analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'ConnectionRefusedFirmwareVersion');
 
                 var dialog = $('.dialogConnectWarning')[0];
 
@@ -552,35 +571,6 @@ function have_sensor(sensors_detected, sensor_code) {
     return false;
 }
 
-function update_dataflash_global() {
-    var supportsDataflash = DATAFLASH.totalSize > 0;
-    if (supportsDataflash){
-
-         $(".noflash_global").css({
-             display: 'none'
-         });
-
-         $(".dataflash-contents_global").css({
-             display: 'block'
-         });
-
-         $(".dataflash-free_global").css({
-             width: (100-(DATAFLASH.totalSize - DATAFLASH.usedSize) / DATAFLASH.totalSize * 100) + "%",
-             display: 'block'
-         });
-         $(".dataflash-free_global div").text('Dataflash: free ' + formatFilesize(DATAFLASH.totalSize - DATAFLASH.usedSize));
-    } else {
-         $(".noflash_global").css({
-             display: 'block'
-         });
-
-         $(".dataflash-contents_global").css({
-             display: 'none'
-         });
-    }
-
-}
-
 function startLiveDataRefreshTimer() {
     // live data refresh
     GUI.timeout_add('data_refresh', function () { update_live_status(); }, 100);
@@ -608,56 +598,57 @@ function update_live_status() {
     for (var i = 0; i < AUX_CONFIG.length; i++) {
        if (AUX_CONFIG[i] == 'ARM') {
                if (bit_check(CONFIG.mode, i))
-                       $(".armedicon").css({
-                               'background-image': 'url(images/icons/cf_icon_armed_active.svg)'
-                           });
+                       $(".armedicon").addClass('active');
                else
-                       $(".armedicon").css({
-                               'background-image': 'url(images/icons/cf_icon_armed_grey.svg)'
-                           });
+                       $(".armedicon").removeClass('active');
        }
        if (AUX_CONFIG[i] == 'FAILSAFE') {
                if (bit_check(CONFIG.mode, i))
-                       $(".failsafeicon").css({
-                               'background-image': 'url(images/icons/cf_icon_failsafe_active.svg)'
-                           });
+                       $(".failsafeicon").addClass('active');
                else
-                       $(".failsafeicon").css({
-                               'background-image': 'url(images/icons/cf_icon_failsafe_grey.svg)'
-                           });
+                       $(".failsafeicon").removeClass('active');
        }
     }
+
     if (ANALOG != undefined) {
-    var nbCells = Math.floor(ANALOG.voltage / BATTERY_CONFIG.vbatmaxcellvoltage) + 1;
-    if (ANALOG.voltage == 0)
-           nbCells = 1;
+        var nbCells = Math.floor(ANALOG.voltage / BATTERY_CONFIG.vbatmaxcellvoltage) + 1;
+
+        if (ANALOG.voltage == 0) {
+               nbCells = 1;
+        }
 
        var min = BATTERY_CONFIG.vbatmincellvoltage * nbCells;
        var max = BATTERY_CONFIG.vbatmaxcellvoltage * nbCells;
        var warn = BATTERY_CONFIG.vbatwarningcellvoltage * nbCells;
 
-       $(".battery-status").css({
-          width: ((ANALOG.voltage - min) / (max - min) * 100) + "%",
-          display: 'inline-block'
-       });
+       const NO_BATTERY_VOLTAGE_MAXIMUM = 1.8; // Maybe is better to add a call to MSP_BATTERY_STATE but is not available for all versions  
 
-       if (active) {
-           $(".linkicon").css({
-               'background-image': 'url(images/icons/cf_icon_link_active.svg)'
+       if (ANALOG.voltage < min && ANALOG.voltage > NO_BATTERY_VOLTAGE_MAXIMUM) {
+           $(".battery-status").addClass('state-empty').removeClass('state-ok').removeClass('state-warning');
+           $(".battery-status").css({
+               width: "100%",
            });
        } else {
-           $(".linkicon").css({
-               'background-image': 'url(images/icons/cf_icon_link_grey.svg)'
+           $(".battery-status").css({
+               width: ((ANALOG.voltage - min) / (max - min) * 100) + "%",
            });
-       }
 
-       if (ANALOG.voltage < warn) {
-           $(".battery-status").css('background-color', '#D42133');
-       } else  {
-           $(".battery-status").css('background-color', '#59AA29');
+           if (ANALOG.voltage < warn) {
+               $(".battery-status").addClass('state-warning').removeClass('state-empty').removeClass('state-ok');
+           } else  {
+               $(".battery-status").addClass('state-ok').removeClass('state-warning').removeClass('state-empty');
+           }
        }
+       
+       let cellsText = (ANALOG.voltage > NO_BATTERY_VOLTAGE_MAXIMUM)? nbCells + 'S' : 'USB';
+       $(".battery-legend").text(ANALOG.voltage.toFixed(2) + "V (" + cellsText + ")");
 
-       $(".battery-legend").text(ANALOG.voltage + " V");
+    }
+
+    if (active) {
+        $(".linkicon").addClass('active');
+    } else {
+        $(".linkicon").removeClass('active');
     }
 
     statuswrapper.show();

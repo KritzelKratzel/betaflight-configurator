@@ -16,17 +16,17 @@
 }
 
 .tab-auxiliary .range .marker, .tab-auxiliary .channel-slider .noUi-connect {
-    background: #ffbb00;
+    background: var(--accent);
     border-radius: 3px;
 }
 
 .tab-auxiliary .mode.on .info {
-    background: #ffbb00;
+    background: var(--accent);
     color: black;
 }
 
 .tab-auxiliary .mode.on:nth-child(odd) .info {
-    background: #ffbb00;
+    background: var(--accent);
 }
 
 .tab-auxiliary .mode.off .info {
@@ -38,6 +38,14 @@
 .tab-auxiliary .mode.off:nth-child(odd) .info {
     background: #cb4747;
     background: #828885;
+}
+
+.tab-auxiliary .mode.disabled .info {
+    background: var(--error);
+    color: var(--quietText);}
+
+.tab-auxiliary .mode.disabled:nth-child(odd) .info {
+    background: var(--error);
 }
 
 #tab-auxiliary-templates {
@@ -105,7 +113,7 @@
     padding-top: 15px;
     padding-left: 0px;
     border-top: 1px solid #fff;
-    border-bottom: 1px solid #cccccc;
+    border-bottom: 1px solid var(--subtleAccent);
     background-color: #ececec;
     padding-bottom: 5px;
 }
@@ -116,7 +124,7 @@
     padding-top: 15px;
     padding-left: 15px;
     border-top: 1px solid #fff;
-    border-bottom: 1px solid #cccccc;
+    border-bottom: 1px solid var(--subtleAccent);
     background-color: #ececec;
     padding-bottom: 5px;
 }
@@ -155,13 +163,13 @@
 }
 
 .tab-auxiliary .range .channel {
-    border: 1px solid silver;
+    border: 1px solid var(--subtleAccent);
     border-radius: 3px;
     margin-bottom: 3px;
 }
 
 .tab-auxiliary .logic {
-    border: 1px solid silver;
+    border: 1px solid var(--subtleAccent);
     border-radius: 3px;
 }
 
@@ -172,6 +180,7 @@
     height: 13px;
     width: 6px;
     margin-left: -3px;
+    z-index: 1000;
 }
 
 .tab-auxiliary .range .channel-slider {
@@ -186,7 +195,7 @@
 }
 
 .tab-auxiliary .link .linkedTo {
-    border: 1px solid silver;
+    border: 1px solid var(--subtleAccent);
     border-radius: 3px;
     margin-bottom: 3px;
 }
@@ -247,11 +256,6 @@
 .tab-auxiliary .save_btn a {
     line-height: 28px;
 }
-
-.tab-auxiliary .spacebottom {
-    margin-bottom: 15px;
-}
-
 
 @media only screen and (max-width: 1055px) , only screen and (max-device-width: 1055px) {
     .tab-auxiliary .fixed_band {

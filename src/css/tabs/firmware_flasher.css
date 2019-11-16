@@ -1,6 +1,7 @@
 .tab-firmware_flasher .info {
     padding: 2px 18px;
     position: relative;
+    flex-grow: 100;
 }
 
 .tab-firmware_flasher .info .progressLabel {
@@ -20,10 +21,6 @@
 
 .tab-firmware_flasher .spacer_box_title {
     float: none;
-}
-
-.tab-firmware_flasher .info {
-    flex-grow: 100;
 }
 
 .tab-firmware_flasher .info .progressLabel a {
@@ -53,10 +50,7 @@
     width: 100%;
     height: 26px;
     border-radius: 5px;
-    border: 1px solid silver;
-}
-
-.tab-firmware_flasher .info .progress {
+    border: 1px solid var(--subtleAccent);
     -webkit-appearance: none;
 }
 
@@ -101,7 +95,8 @@
 .tab-firmware_flasher .options select {
     width: 300px;
     height: 20px;
-    border: 1px solid silver;
+    border: 1px solid var(--subtleAccent);
+    border-radius: 3px;
 }
 
 .tab-firmware_flasher .options .releases select {
@@ -118,6 +113,10 @@
     left: 0px;
     font-style: italic;
     color: #818181;
+}
+
+.tab-firmware_flasher .options select option.cached {
+    font-weight: bold;
 }
 
 .tab-firmware_flasher .cf_table td:last-child {
@@ -142,7 +141,7 @@
     text-align: center;
     font-weight: bold;
     color: white;
-    border-bottom: 1px solid silver;
+    border-bottom: 1px solid var(--subtleAccent);
     background-color: #3f4241;
 }
 
@@ -169,7 +168,7 @@
 .tab-firmware_flasher .git_info {
     display: none;
     margin-bottom: 10px;
-    border: 1px solid silver;
+    border: 1px solid var(--subtleAccent);
 }
 
 .tab-firmware_flasher .git_info .title {
@@ -177,7 +176,7 @@
     text-align: center;
     font-weight: bold;
     color: white;
-    border-bottom: 1px solid silver;
+    border-bottom: 1px solid var(--subtleAccent);
     background-color: #3f4241;
 }
 
@@ -208,7 +207,7 @@
     line-height: 28px;
     text-align: center;
     font-weight: bold;
-    border: 1px solid silver;
+    border: 1px solid var(--subtleAccent);
     background-color: #ececec;
 }
 

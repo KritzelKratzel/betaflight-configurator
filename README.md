@@ -2,6 +2,8 @@
 
 ![Betaflight](http://static.rcgroups.net/forums/attachments/6/1/0/3/7/6/a9088900-228-bf_logo.jpg)
 
+[![Crowdin](https://d322cqt584bo4o.cloudfront.net/betaflight-configurator/localized.svg)](https://crowdin.com/project/betaflight-configurator) [![Build Status](https://travis-ci.com/betaflight/betaflight-configurator.svg?branch=master)](https://travis-ci.com/betaflight/betaflight-configurator) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=betaflight_betaflight-configurator&metric=alert_status)](https://sonarcloud.io/dashboard?id=betaflight_betaflight-configurator) [![Build Status](https://dev.azure.com/Betaflight/Betaflight%20Nightlies/_apis/build/status/betaflight.betaflight-configurator?branchName=master)](https://dev.azure.com/Betaflight/Betaflight%20Nightlies/_build/latest?definitionId=1&branchName=master)
+
 Betaflight Configurator is a crossplatform configuration tool for the Betaflight flight control system.
 
 It runs as an app within Google Chrome and allows you to configure the Betaflight software running on any [supported Betaflight target](https://github.com/betaflight/betaflight/tree/master/src/main/target).
@@ -25,6 +27,11 @@ If you are experiencing any problems please make sure you are running the [lates
 
 Download the installer from [Releases.](https://github.com/betaflight/betaflight-configurator/releases)
 
+#### Note for MacOS X users
+
+Changes to the security model used in the latest versions of MacOS X 10.14 (Mojave) and 10.15 (Catalina) mean that the operating system will show an error message ('"Betaflight Configurator.app" is damaged and can’t be opened. You should move it to the Trash.') when trying to install the application. To work around this, run the following command in a terminal before installing: `sudo xattr -rd com.apple.quarantine /Applications/Betaflight\ Configurator.app`.
+
+
 ### Via Chrome Web Store (for ChromeOS)
 
 [![available in the Chrome web store for Chromeos](https://developer.chrome.com/webstore/images/ChromeWebStore_Badge_v2_206x58.png)](https://chrome.google.com/webstore/detail/dlgclabibdhkfnbkajgkplmkpndajfom)
@@ -38,7 +45,7 @@ Please note - the application will automatically update itself when new versions
 
 ### Unstable Testing Versions
 
-Unstable testing versions of the lates builds of the configurator for most platforms can be downloaded from [here](https://ci.betaflight.tech/job/BetaFlight_Configurator/).
+Unstable testing versions of the lates builds of the configurator for most platforms can be downloaded from [here](https://github.com/betaflight/betaflight-configurator-nightlies/releases/).
 
 **Be aware that these versions are intended for testing / feedback only, and may be buggy or broken, and can cause flight controller settings to be corrupted. Caution is advised when using these versions.**
 
@@ -46,7 +53,7 @@ Unstable testing versions of the lates builds of the configurator for most platf
 
 ### Development
 
-1. Install node.js
+1. Install node.js (version 10 required)
 2. Install yarn: `npm install yarn -g`
 3. Change to project folder and run `yarn install`.
 4. Run `yarn start`.
@@ -74,7 +81,7 @@ List of possible values of `<task-name>`:
 To build or release only for one specific platform you can append the plaform after the `task-name`.
 If no platform is provided, all the platforms will be done in sequence.
 
-* **MacOS** use `yarn gulp <task-name> --osx64`
+* **MacOS X** use `yarn gulp <task-name> --osx64`
 * **Linux** use `yarn gulp <task-name> --linux64`
 * **Windows** use `yarn gulp <task-name> --win32`
 * **ChromeOS** use `yarn gulp <task-name> --chromeos`
@@ -85,19 +92,19 @@ You can also use multiple platforms e.g. `yarn gulp <taskname> --osx64 --linux64
 
 Betaflight Configurator has been translated into several languages. The application will try to detect and use your system language if a translation into this language is available. You can help [translating the application into your language](https://crowdin.com/project/betaflight-configurator).
 
-If you prefer to have the application in English or any other language, you can select your desired language in the options menu of the application.
+If you prefer to have the application in English or any other language, you can select your desired language in the first screen of the application.
 
 ## Notes
 
-### WebGL
+### Graphics Issues
 
-Make sure Settings -> System -> "User hardware acceleration when available" is checked to achieve the best performance
+If you experience graphics display problems or smudged/dithered fonts display issues in Betaflight Configurator, try invoking the betaflight-configurator executable file with the --disable-gpu command line switch. This will switch off hardware graphics acceleration. Likewise, setting your graphics card antialiasing option to OFF (e.g. FXAA parameter on NVidia graphics cards) might be a remedy as well.
 
 ### Linux users
 
 Dont forget to add your user into dialout group "sudo usermod -aG dialout YOUR_USERNAME" for serial access
 
-### Linux / MacOSX users
+### Linux / MacOS X users
 
 If you have 3D model animation problems, enable "Override software rendering list" in Chrome flags chrome://flags/#ignore-gpu-blacklist
 
@@ -129,4 +136,3 @@ ctn - primary author and maintainer of Baseflight Configurator from which Cleanf
 
 Hydra -  author and maintainer of Cleanflight Configurator from which this project was forked.
 
-[![Crowdin](https://d322cqt584bo4o.cloudfront.net/betaflight-configurator/localized.svg)](https://crowdin.com/project/betaflight-configurator)

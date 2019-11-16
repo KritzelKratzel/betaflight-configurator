@@ -26,6 +26,7 @@ var SERVO_RULES;
 var SERIAL_CONFIG;
 var SENSOR_DATA;
 var MOTOR_DATA;
+var MOTOR_TELEMETRY_DATA;
 var SERVO_DATA;
 var GPS_DATA;
 var ANALOG;
@@ -58,7 +59,12 @@ var FILTER_CONFIG;
 var ADVANCED_TUNING;
 var SENSOR_CONFIG;
 var COPY_PROFILE;
+var VTX_CONFIG;
+var VTXTABLE_BAND;
+var VTXTABLE_POWERLEVEL;
+var MULTIPLE_MSP;
 var DEFAULT;
+var DEFAULT_PIDS;
 
 var FC = {
     resetState: function () {
@@ -89,12 +95,13 @@ var FC = {
             runawayTakeoffPreventionDisabled: false,
             boardIdentifier:                  "",
             boardVersion:                     0,
-            commCapabilities:                 0,
+            targetCapabilities:               0,
             targetName:                       "",
             boardName:                        "",
             manufacturerId:                   "",
             signature:                        [],
             mcuTypeId:                        255,
+            configurationState:               0,
         };
 
         BF_CONFIG = {
@@ -207,6 +214,15 @@ var FC = {
         MOTOR_DATA =                    new Array(8);
         SERVO_DATA =                    new Array(8);
 
+        MOTOR_TELEMETRY_DATA = {
+            rpm:                        [0, 0, 0, 0, 0, 0, 0, 0],
+            invalidPercent:             [0, 0, 0, 0, 0, 0, 0, 0],
+            temperature:                [0, 0, 0, 0, 0, 0, 0, 0],
+            voltage:                    [0, 0, 0, 0, 0, 0, 0, 0],
+            current:                    [0, 0, 0, 0, 0, 0, 0, 0],
+            consumption:                [0, 0, 0, 0, 0, 0, 0, 0],
+        };
+
         GPS_DATA = {
             fix:                        0,
             numSat:                     0,
@@ -274,6 +290,10 @@ var FC = {
             minthrottle:                0,
             maxthrottle:                0,
             mincommand:                 0,
+            motor_count:                0,
+            motor_poles:                0,
+            use_dshot_telemetry:        false,
+            use_esc_sensor:             false,
         };
 
         GPS_CONFIG = {
@@ -281,6 +301,8 @@ var FC = {
             ublox_sbas:                 0,
             auto_config:                0,
             auto_baud:                  0,
+            home_point_once:            0,
+            ublox_use_galileo:          0,
         };
 
         COMPASS_CONFIG = {
@@ -353,6 +375,14 @@ var FC = {
             motor_pwm_rate:             0,
             digitalIdlePercent:         0,
             gyroUse32kHz:               0,
+            motorPwmInversion:          0,
+            gyroHighFsr:                0,
+            gyroMovementCalibThreshold: 0,
+            gyroCalibDuration:          0,
+            gyroOffsetYaw:              0,
+            gyroCheckOverflow:          0,
+            debugMode:                  0,
+            debugModeCount:             0,
         };
 
         FILTER_CONFIG = {
@@ -377,6 +407,12 @@ var FC = {
             dterm_notch_hz:             0,
             dterm_notch_cutoff:         0,
             yaw_lowpass_hz:             0,
+            dyn_notch_range:            0,
+            dyn_notch_width_percent:    0,
+            dyn_notch_q:                0,
+            dyn_notch_min_hz:           0,
+            gyro_rpm_notch_harmonics:   0,
+            gyro_rpm_notch_min_hz:      0,
         };
 
         ADVANCED_TUNING = {
@@ -400,6 +436,7 @@ var FC = {
             smartFeedforward:           0,
             itermRelax:                 0,
             itermRelaxType:             0,
+            itermRelaxCutoff:           0,
             absoluteControlGain:        0,
             throttleBoost:              0,
             acroTrainerAngleLimit:      0,
@@ -444,6 +481,8 @@ var FC = {
             rcSmoothingDerivativeCutoff:  0, 
             rcSmoothingInputType:         0,
             rcSmoothingDerivativeType:    0,
+            rcSmoothingAutoSmoothness:    0,
+            usbCdcHidType:                0,
         };
 
         FAILSAFE_CONFIG = {
@@ -465,9 +504,48 @@ var FC = {
             throttleHover:                  0,
             sanityChecks:                   0,
             minSats:                        0,
+            ascendRate:                     0,
+            descendRate:                    0,
+            allowArmingWithoutFix:          0,
+            altitudeMode:                   0,
         };
 
         RXFAIL_CONFIG = [];
+
+        VTX_CONFIG = {
+            vtx_type:                       0,
+            vtx_band:                       0,
+            vtx_channel:                    0,
+            vtx_power:                      0,
+            vtx_pit_mode:                   false,
+            vtx_frequency:                  0,
+            vtx_device_ready:               false,
+            vtx_low_power_disarm:           0,
+            vtx_pit_mode_frequency:         0,
+            vtx_table_available:            false,
+            vtx_table_bands:                0,
+            vtx_table_channels:             0,
+            vtx_table_powerlevels:          0,
+            vtx_table_clear:                false,
+        };
+
+        VTXTABLE_BAND = {
+            vtxtable_band_number:           0,
+            vtxtable_band_name:             '',
+            vtxtable_band_letter:           '',
+            vtxtable_band_is_factory_band:  false,
+            vtxtable_band_frequencies:      [],
+        };
+
+        VTXTABLE_POWERLEVEL = {
+            vtxtable_powerlevel_number:     0,
+            vtxtable_powerlevel_value:      0,
+            vtxtable_powerlevel_label:      0,
+        };
+
+        MULTIPLE_MSP = {
+            msp_commands:                   [],
+        };
 
         DEFAULT = {
             gyro_lowpass_hz:                100,
@@ -480,6 +558,7 @@ var FC = {
             gyro_notch_hz:                  400,
             gyro_notch2_cutoff:             100,
             gyro_notch2_hz:                 200,
+            gyro_rpm_notch_harmonics:         3,
             dterm_lowpass_hz:               100,
             dterm_lowpass_dyn_min_hz:       150,
             dterm_lowpass_dyn_max_hz:       250,
@@ -490,6 +569,12 @@ var FC = {
             dterm_notch_hz:                 260,
             yaw_lowpass_hz:                 100,
         };
+
+        DEFAULT_PIDS = [
+            42, 85, 35, 20, 90,
+            46, 90, 38, 22, 95,
+            30, 90,  0,  0, 90,
+        ];
     },
 
     getHardwareName: function () {
@@ -529,15 +614,25 @@ var FC = {
         return FC.MCU_TYPES[CONFIG.mcuTypeId];
     },
 
-    COMM_CAPABILITIES_FLAGS: {
-        HAS_VCP: 0x01,
-        HAS_SOFTSERIAL: 0x02,
+    CONFIGURATION_STATES: {
+        DEFAULTS_BARE: 0,
+        DEFAULTS_CUSTOM: 1,
+        CONFIGURED: 2,
+    },
+
+    TARGET_CAPABILITIES_FLAGS: {
+        HAS_VCP: 0,
+        HAS_SOFTSERIAL: 1,
+        IS_UNIFIED: 2,
+        HAS_FLASH_BOOTLOADER: 3,
+        SUPPORTS_CUSTOM_DEFAULTS: 4,
+        HAS_CUSTOM_DEFAULTS: 5,
     },
 
     boardHasVcp: function () {
         var hasVcp = false;
         if (semver.gte(CONFIG.apiVersion, "1.37.0")) {
-            hasVcp = (CONFIG.commCapabilities & FC.COMM_CAPABILITIES_FLAGS.HAS_VCP) !== 0;
+            hasVcp = bit_check(CONFIG.targetCapabilities, FC.TARGET_CAPABILITIES_FLAGS.HAS_VCP);
         } else {
             hasVcp = BOARD.find_board_definition(CONFIG.boardIdentifier).vcp;
         }
@@ -564,7 +659,27 @@ var FC = {
             versionFilterDefaults.dterm_lowpass_type = FC.FILTER_TYPE_FLAGS.BIQUAD;
             versionFilterDefaults.dterm_lowpass2_hz = 150;
             versionFilterDefaults.dterm_lowpass2_type = FC.FILTER_TYPE_FLAGS.BIQUAD;
-        }
+            if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+                versionFilterDefaults.gyro_lowpass_hz = 200;
+                versionFilterDefaults.gyro_lowpass_dyn_min_hz = 200;
+                versionFilterDefaults.gyro_lowpass_dyn_max_hz = 500;
+                versionFilterDefaults.gyro_lowpass_type = FC.FILTER_TYPE_FLAGS.PT1;
+                versionFilterDefaults.gyro_lowpass2_hz = 250;
+                versionFilterDefaults.gyro_lowpass2_type = FC.FILTER_TYPE_FLAGS.PT1;
+                versionFilterDefaults.dterm_lowpass_hz = 150;
+                versionFilterDefaults.dterm_lowpass_dyn_min_hz = 70;
+                versionFilterDefaults.dterm_lowpass_dyn_max_hz = 170;
+                versionFilterDefaults.dterm_lowpass_type = FC.FILTER_TYPE_FLAGS.PT1;
+                versionFilterDefaults.dterm_lowpass2_hz = 150;
+                versionFilterDefaults.dterm_lowpass2_type = FC.FILTER_TYPE_FLAGS.PT1;
+            }
+        } 
         return versionFilterDefaults;
+    },
+
+    getPidDefaults: function() {
+        var versionPidDefaults = DEFAULT_PIDS;
+        // if defaults change they should go here
+        return versionPidDefaults;
     },
 };

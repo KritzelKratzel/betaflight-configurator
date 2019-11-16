@@ -13,7 +13,7 @@
 }
 
 .tab-help li {
-    border-top: 1px dotted silver;
+    border-top: 1px dotted var(--subtleAccent);
     padding-top: 5px;
     padding-bottom: 5px;
     background-image: url(../../images/arrow.svg);
@@ -28,7 +28,7 @@
 }
 
 .tab-help li span a {
-    color: #ffbb00;
+    color: var(--accent);
 }
 
 .tab-help .subline {

@@ -6,14 +6,13 @@
 
 var i18n = {}
 
-const languagesAvailables = ['ca', 'de', 'en', 'es', 'fr', 'gl', 'hr', 'id', 'it', 'ja', 'ko', 'lv', 'pt', 'ru', 'sv', 'zh_CN'];
+const languagesAvailables = ['ca', 'de', 'en', 'es', 'eu', 'fr', 'gl', 'hr', 'id', 'it', 'ja', 'ko', 'lv', 'pt', 'ru', 'sv', 'zh_CN'];
 
 /**
  * Functions that depend on the i18n framework
  */
 i18n.init = function(cb) {
-
-    getStoredUserLocale(function(userLanguage){
+    getStoredUserLocale(function(userLanguage) {
 
         i18next
             .use(i18nextXHRBackend)
@@ -30,14 +29,27 @@ i18n.init = function(cb) {
                         console.error('Error loading i18n ' + err);
                     } else {
                         console.log('i18n system loaded');
+                        var detectedLanguage = i18n.getMessage('language_' + getValidLocale("DEFAULT"));
+                        i18n.addResources({"detectedLanguage": detectedLanguage });
+                        i18next.on('languageChanged', function (newLang) {
+                            i18n.localizePage(true);
+                            updateStatusBarVersion();
+                        });
                     }
                     if (cb !== undefined) {
                         cb();
                     }
             });
     });
+
 }
 
+i18n.changeLanguage = function(languageSelected) {
+  ConfigStorage.set({'userLanguageSelect': languageSelected});
+  i18next.changeLanguage(getValidLocale(languageSelected));
+  i18n.selectedLanguage = languageSelected;
+  GUI.log(i18n.getMessage('language_changed'));
+}
 i18n.getMessage = function(messageID, parameters) {
 
     var translatedString;
@@ -79,44 +91,58 @@ i18n.existsMessage = function(key) {
  * Helper functions, don't depend of the i18n framework
  */
 
-i18n.localizePage = function() {
+i18n.localizePage = function(forceReTranslate) {
 
     var localized = 0;
 
     var translate = function(messageID) {
         localized++;
-
         return i18n.getMessage(messageID);
     };
 
-    $('[i18n]:not(.i18n-replaced)').each(function() {
-        var element = $(this);
+    if (forceReTranslate) {
+        $('[i18n]').each(function() {
+            var element = $(this);
+            element.html(translate(element.attr('i18n')));
+        });
+        $('[i18n_title]').each(function() {
+            var element = $(this);
+            element.attr('title', translate(element.attr('i18n_title')));
+        });
+        $('[i18n_value]').each(function() {
+            var element = $(this);
+            element.val(translate(element.attr('i18n_value')));
+        });
+        $('[i18n_placeholder]').each(function() {
+            var element = $(this);
+            element.attr('placeholder', translate(element.attr('i18n_placeholder')));
+        });
+    } else {
 
-        element.html(translate(element.attr('i18n')));
-        element.addClass('i18n-replaced');
-    });
+        $('[i18n]:not(.i18n-replaced)').each(function() {
+            var element = $(this);
+            element.html(translate(element.attr('i18n')));
+            element.addClass('i18n-replaced');
+        });
 
-    $('[i18n_title]:not(.i18n_title-replaced)').each(function() {
-        var element = $(this);
+        $('[i18n_title]:not(.i18n_title-replaced)').each(function() {
+            var element = $(this);
+            element.attr('title', translate(element.attr('i18n_title')));
+            element.addClass('i18n_title-replaced');
+        });
 
-        element.attr('title', translate(element.attr('i18n_title')));
-        element.addClass('i18n_title-replaced');
-    });
+        $('[i18n_value]:not(.i18n_value-replaced)').each(function() {
+            var element = $(this);
+            element.val(translate(element.attr('i18n_value')));
+            element.addClass('i18n_value-replaced');
+        });
 
-    $('[i18n_value]:not(.i18n_value-replaced)').each(function() {
-        var element = $(this);
-
-        element.val(translate(element.attr('i18n_value')));
-        element.addClass('i18n_value-replaced');
-    });
-
-    $('[i18n_placeholder]:not(.i18n_placeholder-replaced)').each(function() {
-        var element = $(this);
-
-        element.attr('placeholder', translate(element.attr('i18n_placeholder')));
-        element.addClass('i18n_placeholder-replaced');
-    });
-
+        $('[i18n_placeholder]:not(.i18n_placeholder-replaced)').each(function() {
+            var element = $(this);
+            element.attr('placeholder', translate(element.attr('i18n_placeholder')));
+            element.addClass('i18n_placeholder-replaced');
+        });
+    }
     return localized;
 }
 
@@ -125,11 +151,12 @@ i18n.localizePage = function() {
  * returns the current locale to the callback
  */
 function getStoredUserLocale(cb) {
-    chrome.storage.local.get('userLanguageSelect', function (result) {
+    ConfigStorage.get('userLanguageSelect', function (result) {
         var userLanguage = 'DEFAULT';
         if (result.userLanguageSelect) {
             userLanguage = result.userLanguageSelect
-        } 
+        }
+        i18n.selectedLanguage = userLanguage;
 
         userLanguage = getValidLocale(userLanguage);
 

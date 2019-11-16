@@ -66,7 +66,7 @@ PortHandler.check = function () {
 
             // auto-select last used port (only during initialization)
             if (!self.initial_ports) {
-                chrome.storage.local.get('last_used_port', function (result) {
+                ConfigStorage.get('last_used_port', function (result) {
                     // if last_used_port was set, we try to select it
                     if (result.last_used_port) {
                         current_ports.forEach(function(port) {
@@ -174,7 +174,9 @@ PortHandler.update_port_select = function (ports) {
         $('div#port-picker #port').append($("<option/>", {value: ports[i], text: ports[i], data: {isManual: false}}));
     }
 
-    $('div#port-picker #port').append($("<option/>", {value: 'manual', text: i18n.getMessage('portsSelectManual'), data: {isManual: true}}));
+    $('div#port-picker #port').append($("<option/>", {value: 'manual', i18n: 'portsSelectManual', data: {isManual: true}}));
+    i18n.localizePage();
+
 };
 
 PortHandler.port_detected = function(name, code, timeout, ignore_timeout) {

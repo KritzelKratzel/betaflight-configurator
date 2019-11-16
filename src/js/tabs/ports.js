@@ -115,7 +115,13 @@ TABS.ports.initialize = function (callback, scrollPosition) {
     load_configuration_from_fc();
 
     function load_configuration_from_fc() {
-        MSP.send_message(MSPCodes.MSP_CF_SERIAL_CONFIG, false, false, on_configuration_loaded_handler);
+        if(semver.gte(CONFIG.apiVersion, "1.42.0")) {
+            MSP.promise(MSPCodes.MSP_VTX_CONFIG).then(function() {
+                return MSP.send_message(MSPCodes.MSP_CF_SERIAL_CONFIG, false, false, on_configuration_loaded_handler);
+            });
+        } else {
+            MSP.send_message(MSPCodes.MSP_CF_SERIAL_CONFIG, false, false, on_configuration_loaded_handler);
+        }
 
         function on_configuration_loaded_handler() {
             $('#content').load("./tabs/ports.html", on_tab_loaded_handler);
@@ -174,6 +180,7 @@ TABS.ports.initialize = function (callback, scrollPosition) {
             blackbox_baudrate_e.append('<option value="' + blackboxBaudRates[i] + '">' + blackboxBaudRates[i] + '</option>');
         }
 
+        let lastVtxControlSelected;
         var ports_e = $('.tab-ports .ports');
         var port_configuration_template_e = $('#tab-ports-templates .portConfiguration');
 
@@ -247,7 +254,7 @@ TABS.ports.initialize = function (callback, scrollPosition) {
                         var selectElementSelector = 'select[name=' + selectElementName + ']';
                         select_e = functions_e.find(selectElementSelector);
 
-                        if (select_e.size() == 0) {
+                        if (select_e.length == 0) {
                             functions_e.prepend('<span class="function"><select name="' + selectElementName + '" /></span>');
                             select_e = functions_e.find(selectElementSelector);
                             var disabledText = i18n.getMessage('portsTelemetryDisabled');
@@ -257,6 +264,10 @@ TABS.ports.initialize = function (callback, scrollPosition) {
 
                         if (serialPort.functions.indexOf(functionName) >= 0) {
                             select_e.val(functionName);
+
+                            if (column === 'peripherals' && (functionName === "TBS_SMARTAUDIO" || functionName === "IRC_TRAMP")) {
+                                lastVtxControlSelected = functionName;
+                            }
                         }
 
                         if (column === 'telemetry') {
@@ -277,6 +288,42 @@ TABS.ports.initialize = function (callback, scrollPosition) {
 
             ports_e.find('tbody').append(port_configuration_e);
         }
+
+        let vtxTableNotConfigured = true;
+        if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+            vtxTableNotConfigured = VTX_CONFIG.vtx_table_available &&
+                                        (VTX_CONFIG.vtx_table_bands == 0 ||
+                                        VTX_CONFIG.vtx_table_channels == 0 ||
+                                        VTX_CONFIG.vtx_table_powerlevels == 0);
+        } else {
+            $('.vtxTableNotSet').hide();
+        }
+
+        const pheripheralsSelectElement = $('select[name="function-peripherals"]');
+        pheripheralsSelectElement.change(function() {
+            let vtxControlSelected = undefined;
+            pheripheralsSelectElement.each(function() {
+                const el = $(this);
+                if (el.val() === "TBS_SMARTAUDIO" || el.val() === "IRC_TRAMP") {
+                    vtxControlSelected = el.val();
+                }
+            });
+
+            if (lastVtxControlSelected !== vtxControlSelected) {
+                self.analyticsChanges['VtxControl'] = vtxControlSelected;
+
+                lastVtxControlSelected = vtxControlSelected;
+            }
+
+            if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+                if (vtxControlSelected && vtxTableNotConfigured) {
+                    $('.vtxTableNotSet').show();
+                } else {
+                    $('.vtxTableNotSet').hide();
+                }
+            }
+        });
+        pheripheralsSelectElement.change();
     }
 
     function on_tab_loaded_handler() {

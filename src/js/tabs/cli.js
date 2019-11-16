@@ -44,8 +44,9 @@ function getCliCommand(command, cliBuffer) {
     return commandWithBackSpaces(command, buffer, noOfCharsToDelete);
 }
 
-function copyToClipboard(text, nwGui) {
+function copyToClipboard(text) {
     function onCopySuccessful() {
+        analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'CliCopyToClipboard', text.length);
         const button = $('.tab-cli .copy');
         const origText = button.text();
         const origWidth = button.css("width");
@@ -67,26 +68,10 @@ function copyToClipboard(text, nwGui) {
         console.warn(ex);
     }
 
-    function nwCopy(text) {
-        try {
-            let clipboard = nwGui.Clipboard.get();
-            clipboard.set(text, "text");
-            onCopySuccessful();
-        } catch (ex) {
-            onCopyFailed(ex);
-        }
-    }
-
-    function webCopy(text) {
-        navigator.clipboard.writeText(text)
-            .then(onCopySuccessful, onCopyFailed);
-    }
-
-    let copyFunc = nwGui ? nwCopy : webCopy;
-    copyFunc(text);
+    Clipboard.writeText(text, onCopySuccessful, onCopyFailed);
 }
 
-TABS.cli.initialize = function (callback, nwGui) {
+TABS.cli.initialize = function (callback) {
     var self = this;
 
     if (GUI.active_tab != 'cli') {
@@ -96,8 +81,6 @@ TABS.cli.initialize = function (callback, nwGui) {
     self.outputHistory = "";
     self.cliBuffer = "";
 
-    // nwGui variable is set in main.js
-    const clipboardCopySupport = !(nwGui == null && !navigator.clipboard);
     const enterKeyCode = 13;
 
     function executeCommands(out_string) {
@@ -194,14 +177,14 @@ TABS.cli.initialize = function (callback, nwGui) {
             $('.tab-cli .window .wrapper').empty();
         });
 
-        if (clipboardCopySupport) {
+        if (Clipboard.available) {
             $('.tab-cli .copy').click(function() {
-                copyToClipboard(self.outputHistory, nwGui);
+                copyToClipboard(self.outputHistory);
             });
         } else {
             $('.tab-cli .copy').hide();
         }
-        
+
         $('.tab-cli .load').click(function() {
             var accepts = [
                 {
@@ -225,13 +208,16 @@ TABS.cli.initialize = function (callback, nwGui) {
                 
                 let previewArea = $("#snippetpreviewcontent textarea#preview");
 
-                function executeSnippet() {
+                function executeSnippet(fileName) {
                     const commands = previewArea.val();
+
+                    analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'CliExecuteFromFile', fileName);
+
                     executeCommands(commands);
                     self.GUI.snippetPreviewWindow.close();
                 }
 
-                function previewCommands(result) {
+                function previewCommands(result, fileName) {
                     if (!self.GUI.snippetPreviewWindow) {
                         self.GUI.snippetPreviewWindow = new jBox("Modal", {
                             id: "snippetPreviewWindow",
@@ -239,10 +225,11 @@ TABS.cli.initialize = function (callback, nwGui) {
                             height: 'auto',
                             closeButton: 'title',
                             animation: false,
-                            title: i18n.getMessage("cliConfirmSnippetDialogTitle"),
+                            isolateScroll: false,
+                            title: i18n.getMessage("cliConfirmSnippetDialogTitle", { fileName: fileName }),
                             content: $('#snippetpreviewcontent'),
                             onCreated: () =>  
-                                $("#snippetpreviewcontent a.confirm").click(() => executeSnippet())
+                                $("#snippetpreviewcontent a.confirm").click(() => executeSnippet(fileName))
                             ,
                         });
                     }
@@ -253,7 +240,7 @@ TABS.cli.initialize = function (callback, nwGui) {
                 entry.file((file) => {
                     let reader = new FileReader();
                     reader.onload = 
-                        () => previewCommands(reader.result);
+                        () => previewCommands(reader.result, file.name);
                     reader.onerror = () => console.error(reader.error);
                     reader.readAsText(file);
                 });
