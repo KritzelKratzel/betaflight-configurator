@@ -18,6 +18,7 @@ function MspHelper () {
     'TELEMETRY_SMARTPORT': 5,
     'RX_SERIAL': 6,
     'BLACKBOX': 7,
+    'TELEMETRY_NANOCAM3D': 8,    // support 3D-OSD on NanoCam3D Mk.1
     'TELEMETRY_MAVLINK': 9,
     'ESC_SENSOR': 10,
     'TBS_SMARTAUDIO': 11,

@@ -45,6 +45,10 @@ TABS.ports.initialize = function (callback, scrollPosition) {
         functionRules.push({ name: 'TELEMETRY_IBUS', groups: ['telemetry'], maxPorts: 1 });
     }
 
+    if (semver.gte(CONFIG.apiVersion, "1.15.0")) {
+	functionRules.push({ name: 'TELEMETRY_NANOCAM3D', groups: ['telemetry'], maxPorts: 1 });
+    }
+    
     if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
         functionRules.push({ name: 'RUNCAM_DEVICE_CONTROL', groups: ['peripherals'], maxPorts: 1 });
     }

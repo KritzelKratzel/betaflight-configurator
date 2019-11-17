@@ -1247,6 +1247,9 @@
     "portsFunction_TELEMETRY_LTM": {
         "message": "LTM"
     },
+    "portsFunction_TELEMETRY_NANOCAM3D": {
+        "message": "NanoCam3D"
+    },
     "portsFunction_TELEMETRY_MAVLINK": {
         "message": "MAVLink"
     },
