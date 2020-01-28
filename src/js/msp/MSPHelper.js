@@ -820,8 +820,8 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 break;
 
             case MSPCodes.MSP_CF_SERIAL_CONFIG:
+                SERIAL_CONFIG.ports = [];
                 if (semver.lt(CONFIG.apiVersion, "1.6.0")) {
-                    SERIAL_CONFIG.ports = [];
                     const serialPortCount = (data.byteLength - (4 * 4)) / 2;
                     for (let i = 0; i < serialPortCount; i++) {
                         const serialPort = {
@@ -835,7 +835,6 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     SERIAL_CONFIG.gpsBaudRate = data.readU32();
                     SERIAL_CONFIG.gpsPassthroughBaudRate = data.readU32();
                 } else {
-                    SERIAL_CONFIG.ports = [];
                     const bytesPerPort = 1 + 2 + (1 * 4);
 
                     const serialPortCount = data.byteLength / bytesPerPort;
@@ -855,6 +854,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 break;
 
             case MSPCodes.MSP2_COMMON_SERIAL_CONFIG:
+                SERIAL_CONFIG.ports = [];
                 const count = data.readU8();
                 const portConfigSize = data.remaining() / count;
                 for (let ii = 0; ii < count; ii++) {
@@ -1879,7 +1879,6 @@ MspHelper.prototype.crunch = function(code) {
                     const functionMask = self.serialPortFunctionsToMask(serialPort.functions);
                     buffer.push16(functionMask)
                         .push8(self.BAUD_RATES.indexOf(serialPort.msp_baudrate))
-                        .push8(self.BAUD_RATES.indexOf(serialPort.msp_baudrate))
                         .push8(self.BAUD_RATES.indexOf(serialPort.gps_baudrate))
                         .push8(self.BAUD_RATES.indexOf(serialPort.telemetry_baudrate))
                         .push8(self.BAUD_RATES.indexOf(serialPort.blackbox_baudrate));
@@ -1897,7 +1896,6 @@ MspHelper.prototype.crunch = function(code) {
 
                 const functionMask = self.serialPortFunctionsToMask(serialPort.functions);
                 buffer.push32(functionMask)
-                    .push8(self.BAUD_RATES.indexOf(serialPort.msp_baudrate))
                     .push8(self.BAUD_RATES.indexOf(serialPort.msp_baudrate))
                     .push8(self.BAUD_RATES.indexOf(serialPort.gps_baudrate))
                     .push8(self.BAUD_RATES.indexOf(serialPort.telemetry_baudrate))
