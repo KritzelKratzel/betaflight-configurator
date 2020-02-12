@@ -930,9 +930,9 @@
         "message": "Bitbanged DSHOT is not working properly and the motors can't be controlled. Likely caused by a timer conflict with other features enabled on the flight controller.",
         "description": "Message that pops up to describe the DSHOT_BBANG arming disable flag"
     },
-    "initialSetupArmingDisableFlagsTooltipACC_CALIB": {
+    "initialSetupArmingDisableFlagsTooltipNO_ACC_CAL": {
         "message": "The accelerometer has not been calibrated and features are enabled that rely on it. Calibrate the accelerometer.",
-        "description": "Message that pops up to describe the ACC_CALIB arming disable flag"
+        "description": "Message that pops up to describe the NO_ACC_CAL arming disable flag"
     },
     "initialSetupArmingDisableFlagsTooltipARM_SWITCH": {
         "message": "One of the others disarm flags is active when arming",
@@ -1358,11 +1358,20 @@
     "configurationCalculatedCyclesSec": {
         "message": "Cycles/Sec [Hz]"
     },
+    "configurationSpeedGyroNoGyro": {
+        "message": "No gyro",
+        "description": "When no gyro is configured this appears in place of the speed of the gyro in kHz"
+    },
+    "configurationSpeedPidNoGyro": {
+        "message": "Gyro / {{value}}",
+        "description": "When no gyro is configured this appears in place of the speed of the PID in kHz. Try to keep it short."
+    },
+    "configurationKHzUnitLabel": {
+        "message": "{{value}} kHz",
+        "description": "Value for some options that show the speed of gyro, pid, etc. in kHz"
+    },
     "configurationLoopTimeHelp": {
         "message": "<strong>Note:</strong> Make sure your FC is able to operate at these speeds! Check CPU and cycletime stability. Changing this may require PID re-tuning. TIP: Disable Accelerometer and other sensors to gain more performance."
-    },
-    "configurationLoopTimeNo32KhzHelp": {
-        "message": "$t(configurationLoopTimeHelp.message)<br><strong>Note about 32 kHz gyro sampling mode:</strong> Support for 32 kHz gyro sampling mode was added to Betaflight as an experimental feature. In the years that it was available, it has never shown that it has any advantage over 8 kHz gyro sampling mode, due to its susceptibility to vibrations, and its high noise level which require aggressive filtering, causing delays in the control loop. For this reason, <strong>support for 32 kHz gyro sampling mode has been dropped</strong> in Betaflight 4.0."
     },
     "configurationGPS": {
         "message": "GPS"
@@ -1942,6 +1951,12 @@
     },
     "receiverButtonRefresh": {
         "message": "Refresh"
+    },
+    "receiverButtonBind": {
+        "message": "Bind Receiver"
+    },
+    "receiverButtonBindMessage": {
+        "message": "Bind request sent to the flight controller."
     },
     "receiverButtonSticks": {
         "message": "Control sticks"
@@ -3424,6 +3439,9 @@
     "pidTuningDynamicNotchMinHz": {
         "message": "Dynamic Notch Min Hz"
     },
+    "pidTuningDynamicNotchMaxHz": {
+        "message": "Dynamic Notch Max Hz"
+    },
     "pidTuningDynamicNotchRangeHelp": {
         "message": "The dynamic notch has three frequency ranges in which it can operate: LOW(80-330hz) for lower revving quads like 6+ inches, MEDIUM(140-550hz) for a normal 5 inch quad, HIGH(230-800hz) for very high revving 2.5-3 inch quads. AUTO option selects the range depending on the value of the Gyro Dynamic Lowpass 1 Filter's max cutoff frequency."
     },
@@ -3434,7 +3452,10 @@
         "message": "Q factor adjust how narrow or wide the dynamic notch filters are. Higher value makes it narrower and more precise and lower value makes it wider and broader. Having a really low value will greatly increase filter delay."
     },
     "pidTuningDynamicNotchMinHzHelp": {
-        "message": "Defines the lowest dynamic notch center frequency below which the dynamic notch will not go."
+        "message": "Set this to the lowest incoming noise frequency that is needed to be controlled by the dynamic notch."
+    },
+    "pidTuningDynamicNotchMaxHzHelp": {
+        "message": "Set this to the highest incoming noise frequency that is needed to be controlled by the dynamic notch."
     },
     "pidTuningRpmFilterGroup": {
         "message": "Gyro RPM Filter",

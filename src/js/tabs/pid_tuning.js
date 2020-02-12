@@ -349,10 +349,17 @@ TABS.pid_tuning.initialize = function (callback) {
             } else {
                 $('.dynamicNotch').hide();
             }
+            $('.dynamicNotchRange').toggle(semver.lt(CONFIG.apiVersion, "1.43.0"));
             $('.pid_filter select[name="dynamicNotchRange"]').val(FILTER_CONFIG.dyn_notch_range);
             $('.pid_filter input[name="dynamicNotchWidthPercent"]').val(FILTER_CONFIG.dyn_notch_width_percent);
             $('.pid_filter input[name="dynamicNotchQ"]').val(FILTER_CONFIG.dyn_notch_q);
             $('.pid_filter input[name="dynamicNotchMinHz"]').val(FILTER_CONFIG.dyn_notch_min_hz);
+            if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                $('.pid_filter input[name="dynamicNotchMinHz"]').attr("max","250");
+                $('.pid_filter input[name="dynamicNotchMaxHz"]').val(FILTER_CONFIG.dyn_notch_max_hz);
+            } else {
+                $('.dynamicNotchMaxHz').hide();
+            }
 
             $('.rpmFilter').toggle(MOTOR_CONFIG.use_dshot_telemetry);
 
@@ -753,6 +760,10 @@ TABS.pid_tuning.initialize = function (callback) {
             FILTER_CONFIG.gyro_rpm_notch_harmonics = rpmFilterEnabled ? parseInt($('.pid_filter input[name="rpmFilterHarmonics"]').val()) : 0;
             FILTER_CONFIG.gyro_rpm_notch_min_hz = parseInt($('.pid_filter input[name="rpmFilterMinHz"]').val());
         }
+
+        if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+            FILTER_CONFIG.dyn_notch_max_hz = parseInt($('.pid_filter input[name="dynamicNotchMaxHz"]').val());
+        }
     }
 
     function showAllPids() {
@@ -913,28 +924,6 @@ TABS.pid_tuning.initialize = function (callback) {
             self.currentRates.rc_rate_pitch = self.currentRates.rc_rate;
             self.currentRates.rc_expo_pitch = self.currentRates.rc_expo;
         }
-
-        function activateSubtab(subtabName) {
-            const names = ['pid', 'rates', 'filter'];
-            if (!names.includes(subtabName)) {
-                console.debug('Invalid subtab name: "' + subtabName + '"');
-                return;
-            }
-            for (name of names) {
-                const el = $('.tab-pid_tuning .subtab-' + name);
-                el[name == subtabName ? 'show' : 'hide']();
-            }
-            $('.tab-pid_tuning .tab-container .tab').removeClass('active');
-            $('.tab-pid_tuning .tab-container .' + subtabName).addClass('active');
-            self.activeSubtab = subtabName;
-            if (subtabName == 'rates') {
-                // force drawing of throttle curve once the throttle curve container element is available
-                // deferring drawing like this is needed to acquire the exact pixel size of the canvas
-                redrawThrottleCurve(true);
-            }
-        }
-
-        activateSubtab(self.activeSubtab);
 
         $('.tab-pid_tuning .tab-container .pid').on('click', () => activateSubtab('pid'));
 
@@ -1142,6 +1131,28 @@ TABS.pid_tuning.initialize = function (callback) {
         populateFilterTypeSelector('dtermLowpassDynType', loadFilterTypeValues());
 
         pid_and_rc_to_form();
+
+        function activateSubtab(subtabName) {
+            const names = ['pid', 'rates', 'filter'];
+            if (!names.includes(subtabName)) {
+                console.debug('Invalid subtab name: "' + subtabName + '"');
+                return;
+            }
+            for (name of names) {
+                const el = $('.tab-pid_tuning .subtab-' + name);
+                el[name == subtabName ? 'show' : 'hide']();
+            }
+            $('.tab-pid_tuning .tab-container .tab').removeClass('active');
+            $('.tab-pid_tuning .tab-container .' + subtabName).addClass('active');
+            self.activeSubtab = subtabName;
+            if (subtabName == 'rates') {
+                // force drawing of throttle curve once the throttle curve container element is available
+                // deferring drawing like this is needed to acquire the exact pixel size of the canvas
+                redrawThrottleCurve(true);
+            }
+        }
+
+        activateSubtab(self.activeSubtab);
 
         var pidController_e = $('select[name="controller"]');
 

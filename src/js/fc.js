@@ -104,6 +104,7 @@ var FC = {
             signature:                        [],
             mcuTypeId:                        255,
             configurationState:               0,
+            sampleRateHz:                     0,
         };
 
         BF_CONFIG = {
@@ -415,6 +416,7 @@ var FC = {
             dyn_notch_width_percent:    0,
             dyn_notch_q:                0,
             dyn_notch_min_hz:           0,
+            dyn_notch_max_hz:           0,
             gyro_rpm_notch_harmonics:   0,
             gyro_rpm_notch_min_hz:      0,
         };
@@ -632,6 +634,7 @@ var FC = {
         HAS_FLASH_BOOTLOADER: 3,
         SUPPORTS_CUSTOM_DEFAULTS: 4,
         HAS_CUSTOM_DEFAULTS: 5,
+        SUPPORTS_RX_BIND: 6,
     },
 
     boardHasVcp: function () {
