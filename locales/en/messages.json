@@ -68,6 +68,9 @@
     "cancel": {
         "message": "Cancel"
     },
+    "cancel": {
+        "message": "Cancel"
+    },
     "autoConnectEnabled": {
         "message": "Auto-Connect: Enabled - Configurator automatically tries to connect when new port is detected"
     },
@@ -160,6 +163,10 @@
     },
     "language_pt_BR": {
         "message": "Portugu\u00EAs Brasileiro",
+        "description": "Don't translate!!!"
+    },
+    "language_pl": {
+        "message": "polski",
         "description": "Don't translate!!!"
     },
     "language_ru": {
@@ -492,6 +499,15 @@
     },
     "resetToCustomDefaultsAccept": {
         "message": "Apply Custom Defaults"
+    },
+    "reportProblemsDialogHeader": {
+        "message": "The following <strong>problems with your configuration</strong> were detected:"
+    },
+    "reportProblemsDialogFooter": {
+        "message": "Please <strong>fix these problems before attempting to fly your craft</strong>."
+    },
+    "reportProblemsDialogAccCalibrationNeeded": {
+        "message": "<strong>the accelerometer is enabled but it is not calibrated</strong>. If you plan to use the accelerometer, please follow the instructions for '$t(initialSetupButtonCalibrateAccel.message)' on the '$t(tabSetup.message)' tab. If any function that requires the accelerometer (auto level modes, GPS rescue, ...) is enabled, arming of the craft will be disabled until the accelerometer has been calibrated. If you are not planning on using the accelerometer it is recommended that you disable it in '$t(configurationSystem.message)' on the '$t(tabConfiguration.message)' tab."
     },
 
     "infoVersions": {
@@ -1749,6 +1765,9 @@
         "message": "Is an additional pushing term (spring) based on stick input. FF helps the P-term push the craft for commanded stick moves.<br><br>The P-term pushes based on the difference between the commanded Setpoint (deg/sec) and the gyro reading of current rotational rate (deg/sec). FF pushes based on the commanded change of the sticks alone.<br><br>Higher values (gains) will result in a more sharp machine response to stick input.<br>Too high of values may result in some overshoot, increased motor heat, and motor saturation (where motors can not keep up with the desired rate of change).<br>Lower or zero (0) values will result in a slower and smoother response to stick inputs.",
         "description": "Feedforward Term helpicon message on PID table titlebar"
     },
+    "pidTuningMaxRateWarning": {
+        "message": "<span class=\"message-negative\"><b>Warning:</b></span> very high rates can result in desyncs from rapid decelerations."
+    },
     "pidTuningRcRate": {
         "message": "RC Rate"
     },
@@ -2910,6 +2929,18 @@
     "firmwareFlasherFlashTrigger": {
         "message": "Detected: <strong>$1</strong> - triggering flash on connect"
     },
+    "unstableFirmwareAcknoledgementDialog": {
+        "message": "You are about to flash a <strong>development build of the firmware</strong>. These builds are a work in progress, and any of the following can be the case:<strong><ul><li>the firmware does not work at all;</li><li>the firmware is not flyable;</li><li>there are safety issues with the firmware, for example flyaways</li><li>the firmware can cause the flight controller to become unresponsive, or damaged</li></ul></strong>If you proceed with flashing this firmware, <strong>you are assuming full responsibility for the risk of any of the above happening</strong>. Furthermore you acknowledge that it is necessary to perform <strong>thorough bench tests with props off</strong> before any attempts to fly this firmware."
+    },
+    "unstableFirmwareAcknoledgementAcknowledge": {
+        "message": "I have read the above and <strong>I assume full responsibility<strong> for flashing unstable firmware"
+    },
+    "unstableFirmwareAcknoledgementFlash": {
+        "message": "Flash"
+    },
+    "firmwareFlasherPreviousDevice": {
+        "message": "Detected: <strong>$1</strong> - previous device still flashing, please replug to try again"
+    },
     "firmwareFlasherPreviousDevice": {
         "message": "Detected: <strong>$1</strong> - previous device still flashing, please replug to try again"
     },
@@ -3274,6 +3305,21 @@
     "pidTuningLevelHelp": {
         "message": "The values below change the behaviour of the ANGLE and HORIZON flight modes. Different PID controllers handle the values differently. Please check the documentation."
     },
+    "pidTuningMotorOutputLimit": {
+        "message": "Motor Output Limit"
+    },
+    "pidTuningMotorLimit": {
+        "message": "Attenuation %"
+    },
+    "pidTuningMotorLimitHelp": {
+        "message": "Attenuates motor commands by the set percentage. Reduces ESC current and motor heat when using higher cell count batteries, e.g. for similar performance from a 6S battery on a 4S build, try 66%; for a 4S battery on a 3S build, try 75%."
+    },
+    "pidTuningCellCount": {
+        "message": "Cell Count"
+    },
+    "pidTuningCellCountHelp": {
+        "message": "Automatically activates the first profile that has a cell count equal to the connected battery."
+    },
     "pidTuningNonProfileFilterSettings": {
         "message": "Profile independent Filter Settings"
     },
@@ -3577,6 +3623,9 @@
         "message": "Cutoff",
         "description": "Cutoff value of the I Term Relax"
     },
+    "pidTuningItermRelaxCutoffHelp": {
+        "message": "Lower values suppress bounce-back after flips in low authority quads, high values increase high-rate turn precision for racing.<br>Set to 30-40 for racing, 20 for responsive freestyle builds, 10 for heavier freestyle quads, 3-5 for X-class."
+    },
     "pidTuningAbsoluteControlGain": {
         "message": "Absolute Control"
     },
@@ -3588,6 +3637,12 @@
     },
     "pidTuningThrottleBoostHelp": {
         "message": "This feature allows throttle to be temporarily boosted on quick stick movements, which increases acceleration torque to the motors, providing a much faster throttle response."
+    },
+    "pidTuningIdleMinRpm": {
+        "message": "Dynamic Idle Value [rpm]"
+    },
+    "pidTuningIdleMinRpmHelp": {
+        "message": "Set this parameter to provide an rpm based floor-value as a safety net against motor desync.<br>A racer might prefer very good response and low rates - therefore a low idle_min_rpm and a high dshot_idle_value may be useful. Freestylers and LOS pilots will appreciate very low thrust at idle and might want to use less dshot_idle_value while using a bit more idle_min_rpm to avoid desyncs at high rates.<br><br>Visit this <a href=\"https://github.com/betaflight/betaflight/wiki/Tuning-Dynamic-Idle\"target=\"_blank\">wiki</a> entry for more info."
     },
     "pidTuningAcroTrainerAngleLimit": {
         "message": "Acro Trainer Angle Limit"
@@ -4032,6 +4087,9 @@
     },
     "osdSetupTitle": {
         "message": "OSD"
+    },
+    "osdSetupNoOsdChipDetectWarning": {
+        "message": "<span class=\"message-negative\"><b>WARNING:</b></span> No OSD chip was detected. Some flight controllers will not properly power the OSD chip unless connected to battery power. Please connect the battery before connecting the USB (PROPS REMOVED!)."
     },
     "osdSetupPreviewHelp": {
         "message": "<strong>Note:</strong> OSD preview may not show the actual font that is installed on the flight controller. The layout of individual elements may look different when older versions of the firmware are used - please check the look through your goggles before flying."
@@ -4659,6 +4717,13 @@
     "osdDescElementCameraFrame": {
         "message": "Adds an adjustable outline element designed to represent the field of view of the pilot's HD camera for visual framing.<br><br>You can adjust the width and height in CLI with 'osd_camera_frame_width' and 'osd_camera_frame_height'"
     },    
+    "osdTextElementEfficiency": {
+        "message": "Battery efficiency",
+        "description": "One of the elements of the OSD"
+    },
+    "osdDescElementEfficiency": {
+        "message": "Instantaneous battery consumption in mAh/distance.  (Requires valid GPS fix)"
+    },
     
     "osdTextElementUnknown": {
         "message": "Unknown $1",
@@ -5095,6 +5160,10 @@
     "vtxMessageTableNotConfigured": {
         "message": "<span class=\"message-negative\">Attention:</span> You need to configure and save FIRST the VTX Table at the bottom before you can make use of the $t(vtxSelectedMode.message) fields.",
         "description": "Message to show when the VTX is not supported in the VTX tab"
+    },
+    "vtxMessageFactoryBandsNotSupported": {
+        "message": "<span class=\"message-negative\">Attention:</span> The selected VTX type does not support the 'factory' setting for bands, but some of your bands have this setting. Click '$t(vtxButtonSave.message)' to fix this.",
+        "description": "Message to show when the configured VTX type does not support factory bands, but one or more of the configured bands are of this type"
     },
     "vtxMessageVerifyTable": {
         "message": "<span class=\"message-negative\">Attention:</span> The values of the VTX Table have been loaded, but not yet stored on the flight controller. You must verify and modify the values to be sure that they are valid and legal in your country and then press the $t(vtxButtonSave.message) button to store them on the flight controller.",
@@ -5557,5 +5626,62 @@
     },
     "darkTheme": {
         "message": "Enable dark theme"
+    },
+    "pidTuningRatesType": {
+        "message": "Rates Type"
+    },
+    "pidTuningRatesTypeTip": {
+        "message": "Changing rates type will change the rates curve and the way you can set it"
+    },
+    "pidTuningRcRateRaceflight": {
+        "message": "Rate"
+    },
+    "pidTuningRcExpoRaceflight": {
+        "message": "Expo"
+    },
+    "pidTuningRateRaceflight": {
+        "message": "Acro+"
+    },
+    "pidTuningRcExpoKISS": {
+        "message": "RC Curve"
+    },
+    "pidTuningRateQuickRates": {
+        "message": "Max Rate"
+    },
+    "pidTuningRcRateActual": {
+        "message": "Center Sensitivity"
+    },
+    "dialogRatesTypeTitle": {
+        "message": "Rates type change"
+    },
+    "dialogRatesTypeNote": {
+        "message": "<span class=\"message-negative\"><b>WARNING: You are changing the rates type.</b></span> If you change the rates type your rates will be set to a default curve."
+    },
+    "dialogRatesTypeConfirm": {
+        "message": "Change"
+    },
+    "gpsSbasAutoDetect": {
+        "message": "Auto-detect",
+        "description": "One of the options selectable for the GPS SBAS system"
+    },
+    "gpsSbasEuropeanEGNOS": {
+        "message": "European EGNOS",
+        "description": "One of the options selectable for the GPS SBAS system"
+    },
+    "gpsSbasNorthAmericanWAAS": {
+        "message": "North American WAAS",
+        "description": "One of the options selectable for the GPS SBAS system"
+    },
+    "gpsSbasJapaneseMSAS": {
+        "message": "Japanese MSAS",
+        "description": "One of the options selectable for the GPS SBAS system"
+    },
+    "gpsSbasIndianGAGAN": {
+        "message": "Indian GAGAN",
+        "description": "One of the options selectable for the GPS SBAS system"
+    },
+    "gpsSbasNone": {
+        "message": "None",
+        "description": "One of the options selectable for the GPS SBAS system"
     }
 }

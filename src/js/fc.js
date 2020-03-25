@@ -458,6 +458,9 @@ var FC = {
             dMinAdvance:                0,
             useIntegratedYaw:           0,
             integratedYawRelax:         0,
+            motorOutputLimit:           0,
+            autoProfileCellCount:       0,
+            idleMinRpm:                 0,
         };
         ADVANCED_TUNING_ACTIVE = { ...ADVANCED_TUNING };
 
@@ -635,6 +638,7 @@ var FC = {
         SUPPORTS_CUSTOM_DEFAULTS: 4,
         HAS_CUSTOM_DEFAULTS: 5,
         SUPPORTS_RX_BIND: 6,
+        ACC_NEEDS_CALIBRATION: 7,
     },
 
     boardHasVcp: function () {

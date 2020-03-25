@@ -358,6 +358,9 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     RC_tuning.pitch_rate_limit = data.readU16();
                     RC_tuning.yaw_rate_limit = data.readU16();
                 }
+                if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                    RC_tuning.rates_type = data.readU8();
+                }
                 break;
             case MSPCodes.MSP_PID:
                 // PID data arrived, we need to scale it and save to appropriate bank / array
@@ -1143,6 +1146,12 @@ MspHelper.prototype.process_data = function(dataHandler) {
 
                                         if(semver.gte(CONFIG.apiVersion, "1.42.0")) {
                                             ADVANCED_TUNING.itermRelaxCutoff = data.readU8();
+
+                                            if(semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                                                ADVANCED_TUNING.motorOutputLimit = data.readU8();
+                                                ADVANCED_TUNING.autoProfileCellCount = data.readU8();
+                                                ADVANCED_TUNING.idleMinRpm = data.readU8();
+                                            }
                                         }
                                     }
                                 }
@@ -1684,6 +1693,9 @@ MspHelper.prototype.crunch = function(code) {
                 buffer.push16(RC_tuning.pitch_rate_limit);
                 buffer.push16(RC_tuning.yaw_rate_limit);
             }
+            if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                buffer.push8(RC_tuning.rates_type);
+            }
             break;
         case MSPCodes.MSP_SET_RX_MAP:
             for (let i = 0; i < RC_MAP.length; i++) {
@@ -2072,6 +2084,12 @@ MspHelper.prototype.crunch = function(code) {
                                           
                                     if(semver.gte(CONFIG.apiVersion, "1.42.0")) {
                                         buffer.push8(ADVANCED_TUNING.itermRelaxCutoff);
+
+                                        if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                                            buffer.push8(ADVANCED_TUNING.motorOutputLimit)
+                                                  .push8(ADVANCED_TUNING.autoProfileCellCount)
+                                                  .push8(ADVANCED_TUNING.idleMinRpm);
+                                        }
                                     }
                                 }
                             }

@@ -62,6 +62,8 @@ SYM.loadSymbols = function() {
     SYM.ALTITUDE = 0x7F;
     SYM.PITCH = 0x15;
     SYM.ROLL = 0x14;
+    SYM.KM = 0x7d;
+    SYM.MILES = 0x7e;
 
     /* Versions before Betaflight 4.1 use font V1
      * To maintain this list at minimum, we only add here:
@@ -1092,7 +1094,7 @@ OSD.loadDisplayFields = function() {
             preview: 'OSD_1'
         },
         RSSI_DBM_VALUE: {
-            name: 'OSD_PROFILE_NAME',
+            name: 'RSSI_DBM_VALUE',
             text: 'osdTextElementRssiDbmValue',
             desc: 'osdDescElementRssiDbmValue',
             default_position: -1,
@@ -1117,6 +1119,17 @@ OSD.loadDisplayFields = function() {
             draw_order: 450,
             positionable: true,
             preview: OSD.drawCameraFramePreview,
+        },
+        OSD_EFFICIENCY: {
+            name: 'OSD_EFFICIENCY',
+            text: 'osdTextElementEfficiency',
+            desc: 'osdDescElementEfficiency',
+            default_position: -1,
+            draw_order: 455,
+            positionable: true,
+            preview: function (osdData) {
+                return `1234${FONT.symbol(SYM.MAH)}/${FONT.symbol(osdData.unit_mode === 0 ? SYM.MILES : SYM.KM)}`;
+            },
         },
 
     };
@@ -1527,6 +1540,7 @@ OSD.chooseFields = function () {
                                                     OSD.constants.DISPLAY_FIELDS = OSD.constants.DISPLAY_FIELDS.concat([
                                                         F.RC_CHANNELS,
                                                         F.CAMERA_FRAME,
+                                                        F.OSD_EFFICIENCY,
                                                     ]);
                                                 }
                                             }
@@ -2230,6 +2244,10 @@ TABS.osd.initialize = function (callback) {
 
                     OSD.msp.decode(info);
 
+                    if (!OSD.data.state.haveMax7456Video || !OSD.data.state.isMax7456Detected) {
+                        $('.noOsdChipDetect').show();
+                    }
+
                     if (OSD.data.state.haveSomeOsd == 0) {
                         $('.unsupported').fadeIn();
                         return;
@@ -2452,11 +2470,10 @@ TABS.osd.initialize = function (callback) {
 
                     if (!OSD.data.state.haveMax7456Video) {
                         $('.requires-max7456').hide();
-                        $('.requires-detected-max7456').hide();
                     }
 
                     if (!OSD.data.state.haveMax7456Video || !OSD.data.state.isMax7456Detected) {
-                        $('.requires-detected-max7456').hide();
+                        $('.requires-detected-max7456').addClass('disabled');
                     }
 
                     if (!OSD.data.state.haveOsdFeature) {

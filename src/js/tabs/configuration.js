@@ -516,9 +516,9 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             $('input[name="motorPoles"]').val(MOTOR_CONFIG.motor_poles);
         }
 
-        function hideMotorPoles() {
-            let motorPolesVisible = $("input[id='dshotBidir']").is(':checked') || $("input[name='ESC_SENSOR']").is(':checked');
-            $('div.motorPoles').toggle(motorPolesVisible);
+        function hideRpmFeatures() {
+            let rpmFeaturesVisible = $("input[id='dshotBidir']").is(':checked') || $("input[name='ESC_SENSOR']").is(':checked');
+            $('div.motorPoles').toggle(rpmFeaturesVisible);
         }
 
         $('#escProtocolTooltip').toggle(semver.lt(CONFIG.apiVersion, "1.42.0"));
@@ -544,12 +544,13 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             $('div.unsyncedpwmfreq').toggle(!digitalProtocol);
 
             $('div.digitalIdlePercent').toggle(digitalProtocol);
+            $('.escSensor').toggle(digitalProtocol);
 
             $('div.checkboxDshotBidir').toggle(semver.gte(CONFIG.apiVersion, "1.42.0") && digitalProtocol);
             $('div.motorPoles').toggle(semver.gte(CONFIG.apiVersion, "1.42.0"));
             //trigger change dshotBidir and ESC_SENSOR to show/hide Motor Poles tab
-            $("input[id='dshotBidir']").change(hideMotorPoles).change();
-            $("input[name='ESC_SENSOR']").change(hideMotorPoles);
+            $("input[id='dshotBidir']").change(hideRpmFeatures).change();
+            $("input[name='ESC_SENSOR']").change(hideRpmFeatures);
 
             //trigger change unsyncedPWMSwitch to show/hide Motor PWM freq input
             $("input[id='unsyncedPWMSwitch']").change();
@@ -701,12 +702,15 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
         ];
 
         var gpsSbas = [
-            'Auto-detect',
-            'European EGNOS',
-            'North American WAAS',
-            'Japanese MSAS',
-            'Indian GAGAN'
+            i18n.getMessage('gpsSbasAutoDetect'),
+            i18n.getMessage('gpsSbasEuropeanEGNOS'),
+            i18n.getMessage('gpsSbasNorthAmericanWAAS'),
+            i18n.getMessage('gpsSbasJapaneseMSAS'),
+            i18n.getMessage('gpsSbasIndianGAGAN')
         ];
+        if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+            gpsSbas.push(i18n.getMessage('gpsSbasNone'));
+        }
 
         var gps_protocol_e = $('select.gps_protocol');
         for (var i = 0; i < gpsProtocols.length; i++) {
@@ -860,13 +864,27 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
                 );
             }
 
+            if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                spiRxTypes.push(
+                    'REDPINE',
+                );
+            }
+
             var spiRx_e = $('select.spiRx');
             for (var i = 0; i < spiRxTypes.length; i++) {
                 spiRx_e.append('<option value="' + i + '">' + spiRxTypes[i] + '</option>');
             }
 
             spiRx_e.change(function () {
-                RX_CONFIG.rxSpiProtocol = parseInt($(this).val());
+                const value = parseInt($(this).val());
+
+                let newValue = undefined;
+                if (value !== RX_CONFIG.rxSpiProtocol) {
+                    newValue = $(this).find('option:selected').text();
+                }
+                self.analyticsChanges['SPIRXProtocol'] = newValue;
+
+                RX_CONFIG.rxSpiProtocol = value;
             });
 
             // select current serial RX type
@@ -904,12 +922,9 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             $('div.disarm').hide();
         }
 
-        $('._smallAngle').hide();
+        $('._smallAngle').toggle(semver.gte(CONFIG.apiVersion, "1.37.0"));
         if(semver.gte(CONFIG.apiVersion, "1.37.0")) {
             $('input[id="configurationSmallAngle"]').val(ARMING_CONFIG.small_angle);
-            if (SENSOR_CONFIG.acc_hardware !== 1) {
-              $('._smallAngle').show();
-            }
         }
 
         // fill throttle
@@ -1107,13 +1122,9 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
         $('input[id="accHardwareSwitch"]').change(function() {
             if(semver.gte(CONFIG.apiVersion, "1.37.0")) {
               var checked = $(this).is(':checked');
-              if (checked) {
-                $('._smallAngle').show()
-              } else {
-                $('._smallAngle').hide()
-              }
+              $('.accelNeeded').toggle(checked);
             }
-        });
+        }).change();
 
         $(features_e).filter('select').change(function () {
             var element = $(this);
