@@ -670,7 +670,7 @@ OSD.loadDisplayFields = function() {
             default_position: -1,
             draw_order: 90,
             positionable: true,
-            preview: 'STAB'
+            preview: 'ANGL'
         },
         GPS_SPEED: {
             name: 'GPS_SPEED',
@@ -1536,7 +1536,7 @@ OSD.chooseFields = function () {
                                                     F.OSD_PROFILE_NAME,
                                                     F.RSSI_DBM_VALUE,
                                                 ]);
-                                                if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                                                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                                                     OSD.constants.DISPLAY_FIELDS = OSD.constants.DISPLAY_FIELDS.concat([
                                                         F.RC_CHANNELS,
                                                         F.CAMERA_FRAME,
@@ -1686,7 +1686,7 @@ OSD.chooseFields = function () {
             F.RSSI_DBM,
         ]);
     }
-    if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+    if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
         OSD.constants.WARNINGS = OSD.constants.WARNINGS.concat([
             F.OVER_CAP,
         ]);
@@ -1819,7 +1819,7 @@ OSD.msp = {
                     result.push8(OSD.data.parameters.overlayRadioMode);
                 }
 
-                if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                     result.push8(OSD.data.parameters.cameraFrameWidth);
                     result.push8(OSD.data.parameters.cameraFrameHeight);
                 }
@@ -1881,8 +1881,10 @@ OSD.msp = {
 
         d.state = {};
         d.state.haveSomeOsd = (d.flags != 0)
-        d.state.haveMax7456Video = bit_check(d.flags, 4) || (d.flags == 1 && semver.lt(CONFIG.apiVersion, "1.34.0"));
-        d.state.isMax7456Detected = bit_check(d.flags, 5) || (d.state.haveMax7456Video && semver.lt(CONFIG.apiVersion, "1.43.0"));
+        d.state.haveMax7456Configured = bit_check(d.flags, 4) || (d.flags == 1 && semver.lt(CONFIG.apiVersion, "1.34.0"));
+        d.state.haveFrSkyOSDConfigured = semver.gte(CONFIG.apiVersion, API_VERSION_1_43) && bit_check(d.flags, 3);
+        d.state.haveMax7456FontDeviceConfigured = d.state.haveMax7456Configured || d.state.haveFrSkyOSDConfigured;
+        d.state.isMax7456FontDeviceDetected = bit_check(d.flags, 5) || (d.state.haveMax7456FontDeviceConfigured && semver.lt(CONFIG.apiVersion, API_VERSION_1_43));
         d.state.haveOsdFeature = bit_check(d.flags, 0) || (d.flags == 1 && semver.lt(CONFIG.apiVersion, "1.34.0"));
         d.state.isOsdSlave = bit_check(d.flags, 1) && semver.gte(CONFIG.apiVersion, "1.34.0");
 
@@ -1970,11 +1972,11 @@ OSD.msp = {
             }
             for (var i = 0; i < warningCount; i++) {
 
+                const enabled = (warningFlags & (1 << i)) !== 0;
+
                 // Known warning field
                 if (i < OSD.constants.WARNINGS.length) {
-                    d.warnings.push($.extend(OSD.constants.WARNINGS[i], {
-                        enabled: (warningFlags & (1 << i)) !== 0,
-                    }));
+                    d.warnings.push($.extend(OSD.constants.WARNINGS[i], { enabled: enabled }));
 
                 // Push Unknown Warning field
                 } else {
@@ -1983,7 +1985,7 @@ OSD.msp = {
                         name: 'UNKNOWN',
                         text: ['osdWarningTextUnknown', warningNumber],
                         desc: 'osdWarningUnknown',
-                        enabled: (warningFlags & (1 << i)) !== 0,
+                        enabled: enabled,
                     });
 
                 }
@@ -2004,7 +2006,7 @@ OSD.msp = {
         }
 
         // Camera frame size
-        if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+        if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
             d.parameters.cameraFrameWidth = view.readU8();
             d.parameters.cameraFrameHeight = view.readU8();
         }
@@ -2168,8 +2170,6 @@ TABS.osd = {
 };
 
 TABS.osd.initialize = function (callback) {
-    var self = this;
-
     if (GUI.active_tab != 'osd') {
         GUI.active_tab = 'osd';
     }
@@ -2260,7 +2260,7 @@ TABS.osd.initialize = function (callback) {
 
                     OSD.msp.decode(info);
 
-                    if (!OSD.data.state.haveMax7456Video || !OSD.data.state.isMax7456Detected) {
+                    if (OSD.data.state.haveMax7456FontDeviceConfigured && !OSD.data.state.isMax7456FontDeviceDetected) {
                         $('.noOsdChipDetect').show();
                     }
 
@@ -2497,12 +2497,12 @@ TABS.osd.initialize = function (callback) {
                         }
                     }
 
-                    if (!OSD.data.state.haveMax7456Video) {
+                    if (!OSD.data.state.haveMax7456Configured) {
                         $('.requires-max7456').hide();
                     }
 
-                    if (!OSD.data.state.haveMax7456Video || !OSD.data.state.isMax7456Detected) {
-                        $('.requires-detected-max7456').addClass('disabled');
+                    if (!OSD.data.state.isMax7456FontDeviceDetected || !OSD.data.state.haveMax7456FontDeviceConfigured) {
+                        $('.requires-max7456-font-device-detected').addClass('disabled');
                     }
 
                     if (!OSD.data.state.haveOsdFeature) {
@@ -2801,11 +2801,11 @@ TABS.osd.initialize = function (callback) {
         $('a.save').click(function () {
             MSP.promise(MSPCodes.MSP_EEPROM_WRITE);
             GUI.log(i18n.getMessage('osdSettingsSaved'));
-            var oldText = $(this).text();
+            const oldText = $(this).html();
             $(this).html(i18n.getMessage('osdButtonSaved'));
-            setTimeout(function () {
+            setTimeout(() => {
                 $(this).html(oldText);
-            }, 2000);
+            }, 1500);
 
             Object.keys(self.analyticsChanges).forEach(function (change) {
                 const value = self.analyticsChanges[change];

@@ -54,6 +54,7 @@ OutFile "..\..\${DEST_FOLDER}\${FILE_NAME_INSTALLER}"
 !insertmacro MUI_LANGUAGE "French"
 !insertmacro MUI_LANGUAGE "Galician"
 !insertmacro MUI_LANGUAGE "German"
+!insertmacro MUI_LANGUAGE "Hungarian"
 !insertmacro MUI_LANGUAGE "Indonesian"
 !insertmacro MUI_LANGUAGE "Italian"
 !insertmacro MUI_LANGUAGE "Japanese"
@@ -66,6 +67,7 @@ OutFile "..\..\${DEST_FOLDER}\${FILE_NAME_INSTALLER}"
 !insertmacro MUI_LANGUAGE "SimpChinese"
 !insertmacro MUI_LANGUAGE "Spanish"
 !insertmacro MUI_LANGUAGE "Swedish"
+!insertmacro MUI_LANGUAGE "TradChinese"
 
 # detect default install folder
 Function .onInit

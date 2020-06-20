@@ -137,6 +137,10 @@
         "message": "Hrvatski",
         "description": "Don't translate!!!"
     },
+    "language_hu": {
+        "message": "Magyar",
+        "description": "Don't translate!!!"
+    },
     "language_id": {
         "message": "Bahasa Indonesia",
         "description": "Don't translate!!!"
@@ -179,6 +183,10 @@
     },
     "language_zh_CN": {
         "message": "\u7b80\u4f53\u4e2d\u6587",
+        "description": "Don't translate!!!"
+    },
+    "language_zh_TW": {
+        "message": "\u7e41\u9ad4\u4e2d\u6587",
         "description": "Don't translate!!!"
     },
 
@@ -236,7 +244,10 @@
         "message": "Show update notifications for unstable versions of the configurator"
     },
     "configuratorUpdateNotice": {
-        "message": "You are using an outdated version of the <b>Betaflight Configurator</b>.<br>Version <b>$1</b> is available online, please visit <a href=\"$2\" target=\"_blank\">the release page</a> to download and install the latest version with fixes and improvements.<br>Please close the configurator window before updating."
+        "message": "You are using an outdated version of the <b>Betaflight Configurator</b>.<br>$t(configuratorUpdateHelp.message)"
+    },
+    "configuratorUpdateHelp": {
+        "message": "Using a newer version of the firmware with an outdated version of Configurator means that changing some settings will result in a <strong>corrupted firmware configuration and a non-working craft</strong>. Furthermore, some features of the firmware will only be configurable in CLI.<br><strong>Betaflight Configurator version <b>$1</b> is available for download online</strong>, please visit <a href=\"$2\" target=\"_blank\" rel=\"noopener noreferrer\">this page</a> to download and install the latest version with fixes and improvements.<br>Please close the configurator window before updating."
     },
     "configuratorUpdateWebsite": {
         "message": "Go to Release Website"
@@ -506,8 +517,14 @@
     "reportProblemsDialogFooter": {
         "message": "Please <strong>fix these problems before attempting to fly your craft</strong>."
     },
-    "reportProblemsDialogAccCalibrationNeeded": {
-        "message": "<strong>the accelerometer is enabled but it is not calibrated</strong>. If you plan to use the accelerometer, please follow the instructions for '$t(initialSetupButtonCalibrateAccel.message)' on the '$t(tabSetup.message)' tab. If any function that requires the accelerometer (auto level modes, GPS rescue, ...) is enabled, arming of the craft will be disabled until the accelerometer has been calibrated. If you are not planning on using the accelerometer it is recommended that you disable it in '$t(configurationSystem.message)' on the '$t(tabConfiguration.message)' tab."
+    "reportProblemsDialogAPI_VERSION_MAX_SUPPORTED": {
+        "message": "<strong>the version of configurator that you are using ($3) is older than the firmware you are using ($4)</strong>.<br>$t(configuratorUpdateHelp.message)"
+    },
+    "reportProblemsDialogMOTOR_PROTOCOL_DISABLED": {
+        "message": "<strong>there is no motor output protocol selected</strong>.<br>Please select a motor output protocol appropriate for your ESCs in '$t(configurationEscFeatures.message)' on the '$t(tabConfiguration.message)' tab.<br>$t(escProtocolDisabledMessage.message)"
+    },
+    "reportProblemsDialogACC_NEEDS_CALIBRATION": {
+        "message": "<strong>the accelerometer is enabled but it is not calibrated</strong>.<br>If you plan to use the accelerometer, please follow the instructions for '$t(initialSetupButtonCalibrateAccel.message)' on the '$t(tabSetup.message)' tab. If any function that requires the accelerometer (auto level modes, GPS rescue, ...) is enabled, arming of the craft will be disabled until the accelerometer has been calibrated.<br>If you are not planning on using the accelerometer it is recommended that you disable it in '$t(configurationSystem.message)' on the '$t(tabConfiguration.message)' tab."
     },
 
     "infoVersions": {
@@ -642,16 +659,16 @@
         "message": "Hardware"
     },
     "defaultWelcomeText": {
-        "message": "The application supports all hardware that can run Betaflight. Check flash tab for full list of hardware.<br /><br /> <a href=\"https://github.com/betaflight/blackbox-log-viewer/releases\" target=\"_blank\">Download Betaflight Blackbox Log Viewer</a><br /><br />The firmware source code can be downloaded from <a href=\"https://github.com/betaflight/betaflight\" target=\"_blank\">here</a><br /><br />The latest <b>STM USB VCP Drivers</b> can be downloaded from <a href=\"http://www.st.com/web/en/catalog/tools/PF257938\" target=\"_blank\">here</a><br />For legacy hardware using a CP210x USB to serial chip:<br />The latest <b>CP210x Drivers</b> can be downloaded from <a href=\"https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers\" target=\"_blank\">here</a><br />The latest <b>Zadig</b> for Windows USB driver installation can be downloaded from <a href=\"http://zadig.akeo.ie/\" target=\"_blank\">here</a><br />"
+        "message": "The application supports all hardware that can run Betaflight. Check flash tab for full list of hardware.<br /><br /> <a href=\"https://github.com/betaflight/blackbox-log-viewer/releases\" target=\"_blank\" rel=\"noopener noreferrer\">Download Betaflight Blackbox Log Viewer</a><br /><br />The firmware source code can be downloaded from <a href=\"https://github.com/betaflight/betaflight\" target=\"_blank\" rel=\"noopener noreferrer\">here</a><br /><br />The latest <b>STM USB VCP Drivers</b> can be downloaded from <a href=\"http://www.st.com/web/en/catalog/tools/PF257938\" target=\"_blank\" rel=\"noopener noreferrer\">here</a><br />For legacy hardware using a CP210x USB to serial chip:<br />The latest <b>CP210x Drivers</b> can be downloaded from <a href=\"https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers\" target=\"_blank\" rel=\"noopener noreferrer\">here</a><br />The latest <b>Zadig</b> for Windows USB driver installation can be downloaded from <a href=\"http://zadig.akeo.ie/\" target=\"_blank\" rel=\"noopener noreferrer\">here</a><br />"
     },
     "defaultContributingHead": {
         "message": "Contributing"
     },
     "defaultContributingText": {
-        "message": "If you would like to help make Betaflight even better you can help in many ways, including:<br /><ul><li>Answering other users questions on the forums and IRC.</li><li>Contributing code to the firmware and configurator - new features, fixes, improvements</li><li>Testing <a href=\"https://github.com/Betaflight/betaflight/pulls\" target=\"_blank\">new features/fixes</a> and providing feedback.</li><li>Helping out with <a href=\"https://github.com/betaflight/betaflight/issues\" target=\"_blank\">issues and commenting on feature requests</a>.</li><li>Collaborate by <a href=\"https://crowdin.com/project/betaflight-configurator\" target=\"_blank\">translating the configurator application</a> into your language.</li><li></li></ul>"
+        "message": "If you would like to help make Betaflight even better you can help in many ways, including:<br /><ul><li>using your knowledge of Betaflight to create or update content on <a href=\"https://github.com/betaflight/betaflight/wiki\" target=\"_blank\" rel=\"noopener noreferrer\">our Wiki</a>, or answering other users' questions in online forums;</li><li><a href=\"https://github.com/betaflight/betaflight/blob/master/docs/development/Development.md\" target=\"_blank\" rel=\"noopener noreferrer\">contributing code</a> to the firmware and Configurator - new features, fixes, improvements;</li><li>testing <a href=\"https://github.com/Betaflight/betaflight/pulls\" target=\"_blank\" rel=\"noopener noreferrer\">new features and fixes</a> and providing feedback;</li><li>helping other users solve the problems they report in <a href=\"https://github.com/betaflight/betaflight/issues\" target=\"_blank\" rel=\"noopener noreferrer\">our issue tracker</a>, and participating in discussions on feature requests;</li><li><a href=\"https://github.com/betaflight/betaflight/tree/master/README.md#Translators\" target=\"_blank\" rel=\"noopener noreferrer\">translating</a> Betaflight Configurator into a new language, or helping to maintain the existing translations.</li></ul>"
     },
     "defaultFacebookText": {
-        "message": "We also have a <a href=\"https://www.facebook.com/groups/betaflightgroup/\" target=\"_blank\">Facebook Group</a>.<br />Join us to get a place to talk about Betaflight, ask configuration questions, or just hang out with fellow pilots."
+        "message": "We also have a <a href=\"https://www.facebook.com/groups/betaflightgroup/\" target=\"_blank\" rel=\"noopener noreferrer\">Facebook Group</a>.<br />Join us to get a place to talk about Betaflight, ask configuration questions, or just hang out with fellow pilots."
     },
     "defaultChangelogHead": {
         "message": "Configurator - Changelog"
@@ -663,13 +680,13 @@
         "message": "Open Source / Donation Notice"
     },
     "defaultDonateText": {
-        "message": "<p><strong>Betaflight</strong> is a flight controller software that is <strong>open source</strong> and is available free of charge <strong>without warranty</strong> to all users.</p><p>If you found the Betaflight or Betaflight configurator useful, please consider <strong>supporting</strong> its development by donating.</p>"
+        "message": "<p><strong>Betaflight</strong> is a flight controller software that is <strong>open source</strong> and is available free of charge <strong>without warranty</strong> to all users.</p><p>If you found the Betaflight or Betaflight Configurator useful, please consider <strong>supporting</strong> its development by donating.</p>"
     },
     "defaultDonateBottom": {
         "message": "<p>If you want to contribute financially on an ongoing basis, you should consider becoming a patron for us on $t(patreonLink.message).</p>"
     },
     "patreonLink": {
-        "message": "<a href=\"https://www.patreon.com/betaflight\" target=\"_blank\">Patreon</a>",
+        "message": "<a href=\"https://www.patreon.com/betaflight\" target=\"_blank\" rel=\"noopener noreferrer\">Patreon</a>",
         "description": "Patreon is name, and should not require translation"
     },
     "defaultDonate": {
@@ -685,10 +702,10 @@
         "message": "Betaflight documentation is available in release notes and wiki.<br /><br />"
     },
     "defaultDocumentation1": {
-        "message": "The Betaflight wiki is a great resource for information, it can be found <a href=\"https://github.com/betaflight/betaflight/wiki\" target=\"_blank\">here</a>."
+        "message": "The Betaflight wiki is a great resource for information, it can be found <a href=\"https://github.com/betaflight/betaflight/wiki\" target=\"_blank\" rel=\"noopener noreferrer\">here</a>."
     },
     "defaultDocumentation2": {
-        "message": "The release notes for the firmware can be read at GitHub releases page, <a href=\"https://github.com/Betaflight/Betaflight/releases\" target=\"_blank\">here</a>."
+        "message": "The release notes for the firmware can be read at GitHub releases page, <a href=\"https://github.com/Betaflight/Betaflight/releases\" target=\"_blank\" rel=\"noopener noreferrer\">here</a>."
     },
     "defaultSupportHead": {
         "message": "Support"
@@ -703,19 +720,19 @@
         "message": "For support please search the forums and wiki first or contact your vendor.<br /><br />"
     },
     "defaultSupport1": {
-        "message": "<a href=\"http://www.rcgroups.com/forums/showthread.php?t=2464844&page=1\" target=\"_blank\">RC Groups thread</a>"
+        "message": "<a href=\"http://www.rcgroups.com/forums/showthread.php?t=2464844&page=1\" target=\"_blank\" rel=\"noopener noreferrer\">RC Groups thread</a>"
     },
     "defaultSupport2": {
-        "message": "<a href=\"http://betaflight.info\" target=\"_blank\">Betaflight Wiki</a>"
+        "message": "<a href=\"http://betaflight.info\" target=\"_blank\" rel=\"noopener noreferrer\">Betaflight Wiki</a>"
     },
     "defaultSupport3": {
-        "message": "<a href=\"https://www.youtube.com/playlist?list=PLwoDb7WF6c8kdK6yHr7vhsU9iRTr5HxP4\" target=\"_blank\">Joshua Bardwell Betaflight Videos</a>"
+        "message": "<a href=\"https://www.youtube.com/playlist?list=PLwoDb7WF6c8kdK6yHr7vhsU9iRTr5HxP4\" target=\"_blank\" rel=\"noopener noreferrer\">Joshua Bardwell Betaflight Videos</a>"
     },
     "defaultSupport4": {
-        "message": "<a href=\"https://github.com/Betaflight\" target=\"_blank\">GitHub</a>"
+        "message": "<a href=\"https://github.com/Betaflight\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>"
     },
     "defaultSupport5": {
-        "message": "<a href=\"https://slack.betaflight.com\" target=\"_blank\">Betaflight devs on slack</a>"
+        "message": "<a href=\"https://slack.betaflight.com\" target=\"_blank\" rel=\"noopener noreferrer\">Betaflight devs on slack</a>"
     },
 
     "initialSetupBackupAndRestoreApiVersion": {
@@ -810,9 +827,6 @@
     },
     "initialSetupMagHead": {
         "message": "Magnetometer"
-    },
-    "initialSetupDeclination": {
-        "message": "Declination:"
     },
     "initialSetupInfoHead": {
         "message": "Info"
@@ -949,6 +963,10 @@
     "initialSetupArmingDisableFlagsTooltipNO_ACC_CAL": {
         "message": "The accelerometer has not been calibrated and features are enabled that rely on it. Calibrate the accelerometer.",
         "description": "Message that pops up to describe the NO_ACC_CAL arming disable flag"
+    },
+    "initialSetupArmingDisableFlagsTooltipMOTOR_PROTO": {
+        "message": "There is no motor output protocol selected",
+        "description": "Message that pops up to describe the MOTOR_PROTO arming disable flag"
     },
     "initialSetupArmingDisableFlagsTooltipARM_SWITCH": {
         "message": "One of the others disarm flags is active when arming",
@@ -1096,7 +1114,10 @@
         "message": "Video Transmitter"
     },
     "featureANTI_GRAVITY": {
-        "message": "Temporary boost I-Term on high throttle changes"
+        "message": "Permanently enable Anti Gravity"
+    },
+    "featureANTI_GRAVITYTip": {
+        "message": "If this is disabled, the 'ANTI GRAVITY' mode can be used to enable Anti Gravity with a switch."
     },
     "featureDYNAMIC_FILTER": {
         "message": "Dynamic gyro notch filtering"
@@ -1215,9 +1236,6 @@
     "configurationArmingHelp": {
         "message": "Some Arming options may require accelerometer be enabled"
     },
-    "configurationMagDeclination": {
-        "message": "Magnetometer Declination [deg]"
-    },
     "configurationReverseMotorSwitch": {
         "message": "Motor direction is reversed"
     },
@@ -1237,7 +1255,7 @@
         "message": "Motor Idle Throttle Value [percent]"
     },
     "configurationDigitalIdlePercentHelp": {
-        "message": "This is the 'idle' value in percent of maximum throttle that is sent to the ESCs when the craft is armed and the trottle stick is at minimum position. Increase the percent value to gain more idle speed."
+        "message": "The 'DShot idle' value is the percent of maximum throttle that is sent to the ESCs when the throttle at minimum stick position and the craft is armed. Increase it to gain more idle speed and avoid desyncs.  Too high and the craft feels floaty."
     },
     "configurationMotorPoles": {
         "message": "Motor poles",
@@ -1248,7 +1266,7 @@
         "description": "One of the fields of the ESC/Motor configuration"
     },
     "configurationMotorPolesHelp": {
-        "message": "This setting is used for some features like the RPM Filter.<br><br>Represents the number of magnets that are on the bell of the motor. <b>Do NOT count the stators</b> where the windings are located. Typical 5\" motors have 14 magnets, smaller ones like 3\" or less usually have 12 magnets.",
+        "message": "The pole count is the number of magnets on the bell of the motor. Do NOT count the stators where the windings are located. 5\" motors usually have 14 magnets, 3\" or smaller often have 12 magnets.",
         "description": "Help text for the Motor poles field of the ESC/Motor configuration"
     },
     "configurationThrottleMinimum": {
@@ -1265,6 +1283,12 @@
     },
     "configurationThrottleMinimumCommandHelp": {
         "message": "This is the value that is sent to the ESCs when the craft is disarmed. Set this to a value that has the motors stopped (1000 for most ESCs)."
+    },
+    "configurationEscProtocolDisabled": {
+        "message": "Please select a motor output protocol appropriate for your ESCs. $t(escProtocolDisabledMessage.message)"
+    },
+    "escProtocolDisabledMessage": {
+        "message": "<strong>Caution:</strong> Selecting a motor output protocol that is not supported by your ESCs can lead to the <strong>ESCs spinning up as soon as a battery is connected</strong>. For this reason, <strong>always make sure to remove the props before connecting a battery for the first time after changing the motor output protocol</strong>."
     },
     "configurationDshotBeeper": {
         "message": "Dshot Beacon Configuration"
@@ -1532,6 +1556,9 @@
     "portsFunction_RUNCAM_DEVICE_CONTROL": {
         "message": "Camera (RunCam Protocol)"
     },
+    "portsFunction_FRSKY_OSD": {
+        "message": "OSD (FrSky Protocol)"
+    },
     "pidTuningProfileOption": {
         "message": "Profile $1"
     },
@@ -1609,7 +1636,7 @@
         "description": "D Min feature helpicon message"
     },
     "pidTuningDMinHelp": {
-        "message": "Controls the strength of dampening (D-term) in normal forward flight.<br>With D_min enabled, the Active D-gain changes during flight. In normal forward flight it is at the D_min gains below. During a sharp move or during prop wash, the Active D-gain raises to the Derivative gains specified to the left.<br><br>Full Derivative gains are reached on sharp stick inputs, but only partial are achieved during prop wash.<br>Adjust the D_Min Gain and Advance to control the gain boost sensitivity and timing.",
+        "message": "Controls the strength of dampening (D-term) in normal forward flight.<br>With D_min enabled, the Active D-gain changes during flight. In normal forward flight it is at the D_min gains below. During a sharp move or during prop wash, the Active D-gain raises to the D_max gains specified to the left.<br><br>Full D_max gains are reached on sharp stick inputs, but only partial are achieved during prop wash.<br>Adjust the D_Min Gain and Advance to control the gain boost sensitivity and timing.",
         "description": "D Min helpicon message on PID table titlebar"
     },
     "pidTuningPidSettings": {
@@ -1753,6 +1780,9 @@
     },
     "pidTuningDerivative": {
         "message": "Derivative"
+    },
+    "pidTuningDMax": {
+        "message": "D Max"
     },
     "pidTuningDerivativeHelp": {
         "message": "Controls the strength of dampening to ANY motion on the craft.  For stick moves, the D-term dampens the command. For an outside influence (prop wash OR wind gust) the D-term dampens the influence.<br><br>Higher gains provide more dampening and reduce overshoot by P-term and FF.<br>However, the D-term is VERY sensitive to gyro high frequency vibrations (noise | magnifies by 10x to 100x).<br><br>High frequency noise can cause motor heat and burn out motors if D-gains are too high or the gyro noise is not filtered well (see Filters tab).<br><br>Think of the D-term as the shock absorber on your car, but with the negative inherent property of magnifying high frequency gyro noise.",
@@ -2234,16 +2264,16 @@
         "message": "Hexadecimal digits only, 0-9, A-F"
     },
     "transponderHelp1": {
-        "message": "Configure your transponder code here.  Note: Only valid codes will be recognised by race timing systems.  Valid transponder codes can be obtained from <a href=\"http://seriouslypro.com/transponder-codes\" target=\"_blank\">Seriously Pro</a>."
+        "message": "Configure your transponder code here.  Note: Only valid codes will be recognised by race timing systems.  Valid transponder codes can be obtained from <a href=\"http://seriouslypro.com/transponder-codes\" target=\"_blank\" rel=\"noopener noreferrer\">Seriously Pro</a>."
     },
     "transponderHelp2": {
-        "message": "For more information please visit <a href=\"http://www.arcitimer.com/\" title=\"aRCiTimer\" target=\"_blank\">aRCiTimer site</a>"
+        "message": "For more information please visit <a href=\"http://www.arcitimer.com/\" title=\"aRCiTimer\" target=\"_blank\" rel=\"noopener noreferrer\">aRCiTimer site</a>"
     },
     "transponderDataHelp3": {
         "message": "Choose ERLT ID 0-63"
     },
     "transponderHelp3": {
-        "message": "For more information please visit <a href=\"https://github.com/polyvision/EasyRaceLapTimer\" title=\"aRCiTimer\" target=\"_blank\">EasyRaceLapTimer site</a>"
+        "message": "For more information please visit <a href=\"https://github.com/polyvision/EasyRaceLapTimer\" title=\"aRCiTimer\" target=\"_blank\" rel=\"noopener noreferrer\">EasyRaceLapTimer site</a>"
     },
     "transponderButtonSave": {
         "message": "Save"
@@ -2707,7 +2737,7 @@
         "message": "Release info"
     },
     "firmwareFlasherReleaseManufacturer": {
-        "message": "Manufacturer:"
+        "message": "Manufacturer ID:"
     },
     "firmwareFlasherReleaseVersion": {
         "message": "Version:"
@@ -2727,8 +2757,14 @@
     "firmwareFlasherReleaseFile": {
         "message": "Binary:"
     },
-    "firmwareFlasherReleaseStatusReleaseCandidate": {
-        "message": "<span class=\"message-negative\">IMPORTANT: This firmware release is currently marked as a release candidate.  Please report any issues immediately.</span>"
+    "firmwareFlasherUnifiedTargetName": {
+        "message": "Unified Target:"
+    },
+    "firmwareFlasherUnifiedTargetFileUrl": {
+        "message": "Show config."
+    },
+    "firmwareFlasherUnifiedTargetDate": {
+        "message": "Date:"
     },
     "firmwareFlasherReleaseFileUrl": {
         "message": "Download manually."
@@ -2879,7 +2915,7 @@
         "message": "<strong>Recovery / Lost communication</strong>"
     },
     "firmwareFlasherRecoveryText": {
-        "message": "If you have lost communication with your board follow these steps to restore communication: <ul><li>Power off</li><li>Enable 'No reboot sequence', enable 'Full chip erase'.</li><li>Jumper the BOOT pins or hold BOOT button.</li><li>Power on (activity LED will NOT flash if done correctly).</li><li>Install all STM32 drivers and Zadig if required (see <a href=\"https://github.com/betaflight/betaflight/wiki/Installing-Betaflight\"target=\"_blank\">USB Flashing</a> section of Betaflight manual).</li><li>Close configurator, Close all running chrome instances, Close all Chrome apps, Restart Configurator.</li><li>Release BOOT button if your FC has one.</li><li>Flash with correct firmware (using manual baud rate if specified in your FC's manual).</li><li>Power off.</li><li>Remove BOOT jumper.</li><li>Power on (activity LED should flash).</li><li>Connect normally.</li></ul>"
+        "message": "If you have lost communication with your board follow these steps to restore communication: <ul><li>Power off</li><li>Enable 'No reboot sequence', enable 'Full chip erase'.</li><li>Jumper the BOOT pins or hold BOOT button.</li><li>Power on (activity LED will NOT flash if done correctly).</li><li>Install all STM32 drivers and Zadig if required (see <a href=\"https://github.com/betaflight/betaflight/wiki/Installing-Betaflight\"target=\"_blank\" rel=\"noopener noreferrer\">USB Flashing</a> section of Betaflight manual).</li><li>Close configurator, Close all running chrome instances, Close all Chrome apps, Restart Configurator.</li><li>Release BOOT button if your FC has one.</li><li>Flash with correct firmware (using manual baud rate if specified in your FC's manual).</li><li>Power off.</li><li>Remove BOOT jumper.</li><li>Power on (activity LED should flash).</li><li>Connect normally.</li></ul>"
     },
     "firmwareFlasherButtonLeave": {
         "message": "Leave Firmware Flasher"
@@ -3309,10 +3345,10 @@
         "message": "Motor Output Limit"
     },
     "pidTuningMotorLimit": {
-        "message": "Attenuation %"
+        "message": "Scale Factor [%]"
     },
     "pidTuningMotorLimitHelp": {
-        "message": "Attenuates motor commands by the set percentage. Reduces ESC current and motor heat when using higher cell count batteries, e.g. for similar performance from a 6S battery on a 4S build, try 66%; for a 4S battery on a 3S build, try 75%."
+        "message": "Motor output linear scale factor (as percentage). Reduces ESC current and motor heat when using higher cell count batteries, e.g. When using a 6S battery on a craft that has motors, props and tuning designed for 4S, try setting the value at 66%; when using a 4S battery on a craft intended for 3S, try 75%.<br>Always make sure that all of your components can support the voltage of the battery you are using."
     },
     "pidTuningCellCount": {
         "message": "Cell Count"
@@ -3408,7 +3444,7 @@
         "description": "Master gain tuning slider helpicon message"
     },
     "pidTuningPDRatioSliderHelp":{
-        "message": "Lower PD balance will lower overall response but will also reduce a possibility of fast bounceback after a flip or roll.<br><br>Higher PD balance provides faster reponse and better propwash handling. However, if your PD balance is too high you will get oscillations after a flip or roll and extended oscillations during prop wash.",
+        "message": "Relatively high D will dampen stick responsiveness and may make motors hot, but should help control P oscillations and may improve propwash wobble.<br><br>Relatively low D gives quicker stick responsiveness but may weaken propwash handling.",
         "description": "PD balance tuning slider helpicon message"
     },
     "pidTuningPDGainSliderHelp":{
@@ -3416,7 +3452,7 @@
         "description": "P and D gain tuning slider helpicon message"
     },
     "pidTuningResponseSliderHelp":{
-        "message": "Lower values will worsen the stick response and may result in slow bounceback at the end of a flip or roll (I-term windup).<br><br>Higher value will have a better stick response for sharp moves. However, too high of values can cause overshoots and fast bounceback at the end of a flip or roll.",
+        "message": "Lower FF values will worsen the stick response and may result in slow bounceback at the end of a flip or roll (I-term windup).<br><br>Higher FF values will give snappier stick responses in sharp moves. Excessively high FF values can cause overshoots and fast bounceback at the end of a flip or roll.",
         "description": "Stick response gain tuning slider helpicon message"
     },
     "pidTuningGyroLowpassFiltersGroup": {
@@ -3624,7 +3660,7 @@
         "description": "Cutoff value of the I Term Relax"
     },
     "pidTuningItermRelaxCutoffHelp": {
-        "message": "Lower values suppress bounce-back after flips in low authority quads, high values increase high-rate turn precision for racing.<br>Set to 30-40 for racing, 20 for responsive freestyle builds, 10 for heavier freestyle quads, 3-5 for X-class."
+        "message": "Lower values suppress bounce-back after flips in low authority quads, high values increase high-rate turn precision for racing.<br>Set to 30-40 for racing, 15 for responsive freestyle builds, 10 for heavier freestyle quads, 3-5 for X-class."
     },
     "pidTuningAbsoluteControlGain": {
         "message": "Absolute Control"
@@ -3639,10 +3675,10 @@
         "message": "This feature allows throttle to be temporarily boosted on quick stick movements, which increases acceleration torque to the motors, providing a much faster throttle response."
     },
     "pidTuningIdleMinRpm": {
-        "message": "Dynamic Idle Value [rpm]"
+        "message": "Dynamic Idle Value [* 100 RPM]"
     },
     "pidTuningIdleMinRpmHelp": {
-        "message": "Set this parameter to provide an rpm based floor-value as a safety net against motor desync.<br>A racer might prefer very good response and low rates - therefore a low idle_min_rpm and a high dshot_idle_value may be useful. Freestylers and LOS pilots will appreciate very low thrust at idle and might want to use less dshot_idle_value while using a bit more idle_min_rpm to avoid desyncs at high rates.<br><br>Visit this <a href=\"https://github.com/betaflight/betaflight/wiki/Tuning-Dynamic-Idle\"target=\"_blank\">wiki</a> entry for more info."
+        "message": "Dynamic Idle improves control at low rpm and reduces risk of motor desyncs. It corrects problems caused by airflow speeding up or slowing down the props, improving PID authority, stability, motor braking and responsiveness. The Dynamic Idle rpm should be set to be about 20% below the rpm of your Dshot Idle value (see the $t(tabMotorTesting.message) tab). Usually there is no need to change your DShot idle value from defaults. For longer inverted hang time, DShot idle value and Minimum rpm should be lowered together.<br><br>Visit <a href=\"https://github.com/betaflight/betaflight/wiki/Tuning-Dynamic-Idle\"target=\"_blank\" rel=\"noopener noreferrer\">this wiki entry</a> for more info."
     },
     "pidTuningAcroTrainerAngleLimit": {
         "message": "Acro Trainer Angle Limit"
@@ -3654,7 +3690,7 @@
         "message": "Integrated Yaw"
     },
     "pidTuningIntegratedYawCaution": {
-        "message": "<span class=\"message-negative\">CAUTION</span>: if you enable this feature, you must adjust the YAW PID accordingly. More info <a href=\"https://github.com/betaflight/betaflight/wiki/Integrated-Yaw\" target=\"_blank\">here</a>"
+        "message": "<span class=\"message-negative\">CAUTION</span>: if you enable this feature, you must adjust the YAW PID accordingly. More info <a href=\"https://github.com/betaflight/betaflight/wiki/Integrated-Yaw\" target=\"_blank\" rel=\"noopener noreferrer\">here</a>"
     },
     "pidTuningIntegratedYawHelp": {
         "message": "Integrated Yaw is a feature which corrects a fundamental issue with quad control: while the pitch and roll axis are controlled by the thrust differentials the props generate yaw is different. Integrated Yaw fixes this by integrating the output of the yaw pid before applying them to the mixer. This normalizes the way the pids work. You can now tune as any other axis. It requires use of absolute control since no I is needed with Integrated Yaw."
@@ -4098,7 +4134,7 @@
         "message": "Your flight controller isn't responding to OSD commands. This probably means that it does not have an integrated BetaFlight OSD."
     },
     "osdSetupUnsupportedNote2": {
-        "message": "Note that some flight controllers have an onboard <a href=\"https://www.youtube.com/watch?v=ikKH_6SQ-Tk\" target=\"_blank\">MinimOSD</a> that can be flashed and configured with <a href=\"https://github.com/ShikOfTheRa/scarab-osd/releases/latest\" target='_blank'>scarab-osd</a>, however the MinimOSD cannot be configured through this interface."
+        "message": "Note that some flight controllers have an onboard <a href=\"https://www.youtube.com/watch?v=ikKH_6SQ-Tk\" target=\"_blank\" rel=\"noopener noreferrer\">MinimOSD</a> that can be flashed and configured with <a href=\"https://github.com/ShikOfTheRa/scarab-osd/releases/latest\" target='_blank'>scarab-osd</a>, however the MinimOSD cannot be configured through this interface."
     },
     "osdSetupProfilesTitle": {
         "message": "OSD Profile number",
@@ -5440,7 +5476,7 @@
         "description": "Feature for the ESC/Motor"
     },
     "configurationDshotBidirHelp": {
-        "message": "When enabled lets the DSHOT protocol receive information directly from the ESC, needed by the RPM Filter and other features.<br><br>This requires the JESC firmware from jflight.net on BLHELI_S or the latest BLHELI_32 firmware.",
+        "message": "Sends ESC data to the FC via DShot telemetry.  Required by RPM Filtering and dynamic idle. <br> <br>Note: Requires a compatible ESC with appropriate firmware, eg JESC, Jazzmac, BLHeli-32.",
         "description": "Description of the Bidirectional DShot feature of the ESC/Motor"
     },
     "configurationGyroSyncDenom": {

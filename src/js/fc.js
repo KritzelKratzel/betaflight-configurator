@@ -42,7 +42,6 @@ var FC_CONFIG;
 var MISC; // DEPRECATED
 var MOTOR_CONFIG;
 var GPS_CONFIG;
-var COMPASS_CONFIG;
 var RSSI_CONFIG;
 var MOTOR_3D_CONFIG;
 var DATAFLASH;
@@ -105,6 +104,7 @@ var FC = {
             mcuTypeId:                        255,
             configurationState:               0,
             sampleRateHz:                     0,
+            configurationProblems:            0,
         };
 
         BF_CONFIG = {
@@ -308,10 +308,6 @@ var FC = {
             auto_baud:                  0,
             home_point_once:            0,
             ublox_use_galileo:          0,
-        };
-
-        COMPASS_CONFIG = {
-            mag_declination:            0,
         };
 
         RSSI_CONFIG = {
@@ -638,7 +634,11 @@ var FC = {
         SUPPORTS_CUSTOM_DEFAULTS: 4,
         HAS_CUSTOM_DEFAULTS: 5,
         SUPPORTS_RX_BIND: 6,
-        ACC_NEEDS_CALIBRATION: 7,
+    },
+
+    CONFIGURATION_PROBLEM_FLAGS: {
+        ACC_NEEDS_CALIBRATION: 0,
+        MOTOR_PROTOCOL_DISABLED: 1,
     },
 
     boardHasVcp: function () {
@@ -692,6 +692,13 @@ var FC = {
     getPidDefaults: function() {
         var versionPidDefaults = DEFAULT_PIDS;
         // if defaults change they should go here
+        if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
+            versionPidDefaults = [
+                42, 85, 35, 23, 90,
+                46, 90, 38, 25, 95,
+                45, 90,  0,  0, 90,
+            ];
+        }
         return versionPidDefaults;
     },
 };

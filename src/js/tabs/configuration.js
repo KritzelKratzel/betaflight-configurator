@@ -1,7 +1,6 @@
 'use strict';
 
 TABS.configuration = {
-    DSHOT_PROTOCOL_MIN_VALUE: 5,
     SHOW_OLD_BATTERY_CONFIG: false,
     analyticsChanges: {},
 };
@@ -55,18 +54,9 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
     }
 
     function load_motor_config() {
-        var next_callback = load_compass_config;
-        if(semver.gte(CONFIG.apiVersion, "1.33.0")) {
-            MSP.send_message(MSPCodes.MSP_MOTOR_CONFIG, false, false, next_callback);
-        } else {
-            next_callback();
-        }
-    }
-
-    function load_compass_config() {
         var next_callback = load_gps_config;
         if(semver.gte(CONFIG.apiVersion, "1.33.0")) {
-            MSP.send_message(MSPCodes.MSP_COMPASS_CONFIG, false, false, load_gps_config);
+            MSP.send_message(MSPCodes.MSP_MOTOR_CONFIG, false, false, next_callback);
         } else {
             next_callback();
         }
@@ -457,7 +447,7 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
         }
 
         // ESC protocols
-        var escprotocols = [
+        const escProtocols = [
             'PWM',
             'ONESHOT125',
             'ONESHOT42',
@@ -465,25 +455,31 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
         ];
 
         if (semver.gte(CONFIG.apiVersion, "1.20.0")) {
-            escprotocols.push('BRUSHED');
+            escProtocols.push('BRUSHED');
         }
 
         if (semver.gte(CONFIG.apiVersion, "1.31.0")) {
-            escprotocols.push('DSHOT150');
-            escprotocols.push('DSHOT300');
-            escprotocols.push('DSHOT600');
+            escProtocols.push('DSHOT150');
+            escProtocols.push('DSHOT300');
+            escProtocols.push('DSHOT600');
+
             if (semver.lt(CONFIG.apiVersion, "1.42.0")) {
-                escprotocols.push('DSHOT1200');
+                escProtocols.push('DSHOT1200');
             }
-            if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
-                escprotocols.push('PROSHOT1000');
-            }
+        }
+
+        if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+            escProtocols.push('PROSHOT1000');
+        }
+
+        if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
+            escProtocols.push('DISABLED');
         }
 
         var esc_protocol_e = $('select.escprotocol');
 
-        for (var i = 0; i < escprotocols.length; i++) {
-            esc_protocol_e.append('<option value="' + (i + 1) + '">'+ escprotocols[i] + '</option>');
+        for (let j = 0; j < escProtocols.length; j++) {
+            esc_protocol_e.append(`<option value="${j + 1}">${escProtocols[j]}</option>`);
         }
 
         $("input[id='unsyncedPWMSwitch']").change(function() {
@@ -516,46 +512,66 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             $('input[name="motorPoles"]').val(MOTOR_CONFIG.motor_poles);
         }
 
-        function hideRpmFeatures() {
-            let rpmFeaturesVisible = $("input[id='dshotBidir']").is(':checked') || $("input[name='ESC_SENSOR']").is(':checked');
-            $('div.motorPoles').toggle(rpmFeaturesVisible);
-        }
-
         $('#escProtocolTooltip').toggle(semver.lt(CONFIG.apiVersion, "1.42.0"));
         $('#escProtocolTooltipNoDSHOT1200').toggle(semver.gte(CONFIG.apiVersion, "1.42.0"));
 
+        function updateVisibility() {
+            // Hide unused settings
+            const protocolName = $('select.escprotocol option:selected').text();
+            const protocolConfigured = protocolName !== 'DISABLED';
+            let digitalProtocol = false;
+            switch (protocolName) {
+            case 'DSHOT150':
+            case 'DSHOT300':
+            case 'DSHOT600':
+            case 'DSHOT1200':
+            case 'PROSHOT1000':
+                digitalProtocol = true;
+
+                break;
+            default:
+
+                break;
+            }
+
+            const rpmFeaturesVisible = digitalProtocol && ($("input[id='dshotBidir']").is(':checked') || $("input[name='ESC_SENSOR']").is(':checked'));
+
+            $('div.minthrottle').toggle(protocolConfigured && !digitalProtocol);
+            $('div.maxthrottle').toggle(protocolConfigured && !digitalProtocol);
+            $('div.mincommand').toggle(protocolConfigured && !digitalProtocol);
+            $('div.checkboxPwm').toggle(protocolConfigured && !digitalProtocol);
+            $('div.unsyncedpwmfreq').toggle(protocolConfigured && !digitalProtocol);
+
+            $('div.digitalIdlePercent').toggle(protocolConfigured && digitalProtocol);
+            $('.escSensor').toggle(protocolConfigured && digitalProtocol);
+
+            $('div.checkboxDshotBidir').toggle(protocolConfigured && semver.gte(CONFIG.apiVersion, "1.42.0") && digitalProtocol);
+            $('div.motorPoles').toggle(protocolConfigured && rpmFeaturesVisible && semver.gte(CONFIG.apiVersion, "1.42.0"));
+
+            $('.escMotorStop').toggle(protocolConfigured);
+
+            $('#escProtocolDisabled').toggle(!protocolConfigured);
+
+            //trigger change unsyncedPWMSwitch to show/hide Motor PWM freq input
+            $("input[id='unsyncedPWMSwitch']").change();
+        }
+
         esc_protocol_e.val(PID_ADVANCED_CONFIG.fast_pwm_protocol + 1);
         esc_protocol_e.change(function () {
-            var escProtocolValue = parseInt($(this).val()) - 1;
+            const escProtocolValue = parseInt($(this).val()) - 1;
 
-            var newValue;
+            let newValue = undefined;
             if (escProtocolValue !== PID_ADVANCED_CONFIG.fast_pwm_protocol) {
                 newValue = $(this).find('option:selected').text();
             }
             self.analyticsChanges['EscProtocol'] = newValue;
 
-            //hide not used setting for DSHOT protocol
-            let digitalProtocol = (escProtocolValue >= self.DSHOT_PROTOCOL_MIN_VALUE);
-
-            $('div.minthrottle').toggle(!digitalProtocol);
-            $('div.maxthrottle').toggle(!digitalProtocol);
-            $('div.mincommand').toggle(!digitalProtocol);
-            $('div.checkboxPwm').toggle(!digitalProtocol);
-            $('div.unsyncedpwmfreq').toggle(!digitalProtocol);
-
-            $('div.digitalIdlePercent').toggle(digitalProtocol);
-            $('.escSensor').toggle(digitalProtocol);
-
-            $('div.checkboxDshotBidir').toggle(semver.gte(CONFIG.apiVersion, "1.42.0") && digitalProtocol);
-            $('div.motorPoles').toggle(semver.gte(CONFIG.apiVersion, "1.42.0"));
-            //trigger change dshotBidir and ESC_SENSOR to show/hide Motor Poles tab
-            $("input[id='dshotBidir']").change(hideRpmFeatures).change();
-            $("input[name='ESC_SENSOR']").change(hideRpmFeatures);
-
-            //trigger change unsyncedPWMSwitch to show/hide Motor PWM freq input
-            $("input[id='unsyncedPWMSwitch']").change();
-
+            updateVisibility();
         }).change();
+
+        //trigger change dshotBidir and ESC_SENSOR to show/hide Motor Poles tab
+        $("input[id='dshotBidir']").change(updateVisibility).change();
+        $("input[name='ESC_SENSOR']").change(updateVisibility).change();
 
         // Gyro and PID update
         const gyroUse32kHzElement = $('input[id="gyroUse32kHz"]');
@@ -616,7 +632,7 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
 
              $('div.gyroUse32kHz').hide();
 
-             if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+             if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                  updateGyroDenomReadOnly(CONFIG.sampleRateHz);
              } else {
                  updateGyroDenom(8);
@@ -631,7 +647,7 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             const originalPidDenom = pidSelectElement.val();
 
             let pidBaseFreq;
-            if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+            if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                 pidBaseFreq = CONFIG.sampleRateHz / 1000;
             } else {
                 pidBaseFreq = 8;
@@ -706,9 +722,9 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             i18n.getMessage('gpsSbasEuropeanEGNOS'),
             i18n.getMessage('gpsSbasNorthAmericanWAAS'),
             i18n.getMessage('gpsSbasJapaneseMSAS'),
-            i18n.getMessage('gpsSbasIndianGAGAN')
+            i18n.getMessage('gpsSbasIndianGAGAN'),
         ];
-        if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+        if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
             gpsSbas.push(i18n.getMessage('gpsSbasNone'));
         }
 
@@ -722,7 +738,7 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
         gps_protocol_e.change(function () {
             GPS_CONFIG.provider = parseInt($(this).val());
 
-            const enableGalileoVisible = semver.gte(CONFIG.apiVersion, "1.43.0") && GPS_CONFIG.provider === gpsProtocols.indexOf('UBLOX');
+            const enableGalileoVisible = semver.gte(CONFIG.apiVersion, API_VERSION_1_43) && GPS_CONFIG.provider === gpsProtocols.indexOf('UBLOX');
             gps_ublox_galileo_e.toggle(enableGalileoVisible);
         });
         gps_protocol_e.val(GPS_CONFIG.provider).change();
@@ -731,7 +747,7 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             GPS_CONFIG.ublox_use_galileo = $(this).is(':checked') ? 1 : 0;
         }).prop('checked', GPS_CONFIG.ublox_use_galileo > 0).change();
 
-        $('.gps_home_once').toggle(semver.gte(CONFIG.apiVersion, "1.43.0"));
+        $('.gps_home_once').toggle(semver.gte(CONFIG.apiVersion, API_VERSION_1_43));
         $('input[name="gps_home_once"]').change(function() {
             GPS_CONFIG.home_point_once = $(this).is(':checked') ? 1 : 0;
         }).prop('checked', GPS_CONFIG.home_point_once > 0).change();
@@ -864,7 +880,7 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
                 );
             }
 
-            if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+            if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                 spiRxTypes.push(
                     'REDPINE',
                 );
@@ -904,9 +920,6 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
         // fill accel trims
         $('input[name="roll"]').val(CONFIG.accelerometerTrims[1]);
         $('input[name="pitch"]').val(CONFIG.accelerometerTrims[0]);
-
-        // fill magnetometer
-        $('input[name="mag_declination"]').val(COMPASS_CONFIG.mag_declination.toFixed(2));
 
         //fill motor disarm params and FC loop time
         if(semver.gte(CONFIG.apiVersion, "1.8.0")) {
@@ -1167,7 +1180,6 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
 
             CONFIG.accelerometerTrims[1] = parseInt($('input[name="roll"]').val());
             CONFIG.accelerometerTrims[0] = parseInt($('input[name="pitch"]').val());
-            COMPASS_CONFIG.mag_declination = parseFloat($('input[name="mag_declination"]').val());
 
             // motor disarm
             if(semver.gte(CONFIG.apiVersion, "1.8.0")) {
@@ -1210,7 +1222,18 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             PID_ADVANCED_CONFIG.use_unsyncedPwm = $('input[id="unsyncedPWMSwitch"]').is(':checked') ? 1 : 0;
             PID_ADVANCED_CONFIG.motor_pwm_rate = parseInt($('input[name="unsyncedpwmfreq"]').val());
             PID_ADVANCED_CONFIG.gyro_sync_denom = parseInt(gyroSelectElement.val());
-            PID_ADVANCED_CONFIG.pid_process_denom = parseInt(pidSelectElement.val());
+
+            const value = parseInt(pidSelectElement.val());
+
+            if (value !== PID_ADVANCED_CONFIG.pid_process_denom) {
+                const newFrequency = pidSelectElement.find('option:selected').text();
+                self.analyticsChanges['PIDLoopSettings'] = `denominator: ${value} | frequency: ${newFrequency}`;
+            } else {
+                self.analyticsChanges['PIDLoopSettings'] = undefined;
+            }
+
+            PID_ADVANCED_CONFIG.pid_process_denom = value;
+
             PID_ADVANCED_CONFIG.digitalIdlePercent = parseFloat($('input[name="digitalIdlePercent"]').val());
             if (semver.gte(CONFIG.apiVersion, "1.25.0") && semver.lt(CONFIG.apiVersion, "1.41.0")) {
                 PID_ADVANCED_CONFIG.gyroUse32kHz = $('input[id="gyroUse32kHz"]').is(':checked') ? 1 : 0;
@@ -1276,18 +1299,9 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
                     GPS_CONFIG.auto_config = $('input[name="gps_auto_config"]').is(':checked') ? 1 : 0;
                 }
 
-                var next_callback = save_compass_config;
-                if(semver.gte(CONFIG.apiVersion, "1.33.0")) {
-                    MSP.send_message(MSPCodes.MSP_SET_GPS_CONFIG, mspHelper.crunch(MSPCodes.MSP_SET_GPS_CONFIG), false, next_callback);
-                } else {
-                    next_callback();
-                }
-            }
-
-            function save_compass_config() {
                 var next_callback = save_motor_3d_config;
                 if(semver.gte(CONFIG.apiVersion, "1.33.0")) {
-                    MSP.send_message(MSPCodes.MSP_SET_COMPASS_CONFIG, mspHelper.crunch(MSPCodes.MSP_SET_COMPASS_CONFIG), false, next_callback);
+                    MSP.send_message(MSPCodes.MSP_SET_GPS_CONFIG, mspHelper.crunch(MSPCodes.MSP_SET_GPS_CONFIG), false, next_callback);
                 } else {
                     next_callback();
                 }

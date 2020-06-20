@@ -25,7 +25,8 @@ function MspHelper () {
     'TELEMETRY_IBUS': 12,
     'IRC_TRAMP': 13,
     'RUNCAM_DEVICE_CONTROL': 14, // support communitate with RunCam Device
-    'LIDAR_TF': 15
+    'LIDAR_TF': 15,
+    'FRSKY_OSD': 16,
   };
 
     self.REBOOT_TYPES = {
@@ -358,7 +359,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     RC_tuning.pitch_rate_limit = data.readU16();
                     RC_tuning.yaw_rate_limit = data.readU16();
                 }
-                if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                     RC_tuning.rates_type = data.readU8();
                 }
                 break;
@@ -399,10 +400,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 MISC.multiwiicurrentoutput = data.readU8();
                 RSSI_CONFIG.channel = data.readU8();
                 MISC.placeholder2 = data.readU8();
-                if (semver.lt(CONFIG.apiVersion, "1.18.0"))
-                    COMPASS_CONFIG.mag_declination = data.read16() / 10; // -1800-1800
-                else
-                    COMPASS_CONFIG.mag_declination = data.read16() / 100; // -18000-18000
+                data.read16(); // was mag_declination
                 MISC.vbatscale = data.readU8(); // was MISC.vbatscale - 10-200
                 MISC.vbatmincellvoltage = data.readU8() / 10; // 10-50
                 MISC.vbatmaxcellvoltage = data.readU8() / 10; // 10-50
@@ -419,9 +417,6 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     MOTOR_CONFIG.use_esc_sensor = data.readU8() != 0;
                 }
                 break;
-            case MSPCodes.MSP_COMPASS_CONFIG:
-                COMPASS_CONFIG.mag_declination = data.read16() / 100; // -18000-18000
-                break;
             case MSPCodes.MSP_GPS_CONFIG:
                 GPS_CONFIG.provider = data.readU8();
                 GPS_CONFIG.ublox_sbas = data.readU8();
@@ -429,7 +424,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     GPS_CONFIG.auto_config = data.readU8();
                     GPS_CONFIG.auto_baud = data.readU8();
 
-                    if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                    if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                         GPS_CONFIG.home_point_once = data.readU8();
                         GPS_CONFIG.ublox_use_galileo = data.readU8();
                     }
@@ -445,7 +440,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 GPS_RESCUE.throttleHover     = data.readU16();
                 GPS_RESCUE.sanityChecks      = data.readU8();
                 GPS_RESCUE.minSats           = data.readU8();
-                if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                     GPS_RESCUE.ascendRate            = data.readU16();
                     GPS_RESCUE.descendRate           = data.readU16();
                     GPS_RESCUE.allowArmingWithoutFix = data.readU8();
@@ -768,7 +763,6 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     CONFIG.boardType = 0;
                 }
 
-                CONFIG.targetName = "";
                 if (semver.gte(CONFIG.apiVersion, "1.37.0")) {
                     CONFIG.targetCapabilities = data.readU8();
 
@@ -778,11 +772,9 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     }
                 } else {
                     CONFIG.targetCapabilities = 0;
+                    CONFIG.targetName = "";
                 }
 
-                CONFIG.boardName = "";
-                CONFIG.manufacturerId = "";
-                CONFIG.signature = [];
                 if (semver.gte(CONFIG.apiVersion, "1.39.0")) {
                     let length = data.readU8();
                     for (let i = 0; i < length; i++) {
@@ -797,22 +789,29 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     for (let i = 0; i < self.SIGNATURE_LENGTH; i++) {
                         CONFIG.signature.push(data.readU8());
                     }
+                } else {
+                    CONFIG.boardName = "";
+                    CONFIG.manufacturerId = "";
+                    CONFIG.signature = [];
                 }
 
                 if (semver.gte(CONFIG.apiVersion, "1.41.0")) {
                     CONFIG.mcuTypeId = data.readU8();
-
-                    if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
-                        CONFIG.configurationState = data.readU8();
-
-                        if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
-                            CONFIG.sampleRateHz = data.readU16();
-                        }
-
-                    }
                 } else {
                     CONFIG.mcuTypeId = 255;
                 }
+
+                if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+                    CONFIG.configurationState = data.readU8();
+                }
+
+                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
+                    CONFIG.sampleRateHz = data.readU16();
+                    CONFIG.configurationProblems = data.readU32();
+                } else {
+                    CONFIG.configurationProblems = 0;
+                }
+
                 break;
 
             case MSPCodes.MSP_NAME:
@@ -1082,7 +1081,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                                 FILTER_CONFIG.gyro_rpm_notch_harmonics = data.readU8();
                                 FILTER_CONFIG.gyro_rpm_notch_min_hz = data.readU8();
                             }
-                            if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                            if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                                 FILTER_CONFIG.dyn_notch_max_hz = data.readU16();
                             }
                         }
@@ -1147,9 +1146,9 @@ MspHelper.prototype.process_data = function(dataHandler) {
                                         if(semver.gte(CONFIG.apiVersion, "1.42.0")) {
                                             ADVANCED_TUNING.itermRelaxCutoff = data.readU8();
 
-                                            if(semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                                            if(semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                                                 ADVANCED_TUNING.motorOutputLimit = data.readU8();
-                                                ADVANCED_TUNING.autoProfileCellCount = data.readU8();
+                                                ADVANCED_TUNING.autoProfileCellCount = data.read8();
                                                 ADVANCED_TUNING.idleMinRpm = data.readU8();
                                             }
                                         }
@@ -1693,7 +1692,7 @@ MspHelper.prototype.crunch = function(code) {
                 buffer.push16(RC_tuning.pitch_rate_limit);
                 buffer.push16(RC_tuning.yaw_rate_limit);
             }
-            if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+            if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                 buffer.push8(RC_tuning.rates_type);
             }
             break;
@@ -1727,13 +1726,9 @@ MspHelper.prototype.crunch = function(code) {
                 .push8(GPS_CONFIG.ublox_sbas)
                 .push8(MISC.multiwiicurrentoutput)
                 .push8(RSSI_CONFIG.channel)
-                .push8(MISC.placeholder2);
-            if (semver.lt(CONFIG.apiVersion, "1.18.0")) {
-                buffer.push16(Math.round(COMPASS_CONFIG.mag_declination * 10));
-            } else {
-                buffer.push16(Math.round(COMPASS_CONFIG.mag_declination * 100));
-            }
-            buffer.push8(MISC.vbatscale)
+                .push8(MISC.placeholder2)
+                .push16(0) // was mag_declination
+                .push8(MISC.vbatscale)
                 .push8(Math.round(MISC.vbatmincellvoltage * 10))
                 .push8(Math.round(MISC.vbatmaxcellvoltage * 10))
                 .push8(Math.round(MISC.vbatwarningcellvoltage * 10));
@@ -1754,7 +1749,7 @@ MspHelper.prototype.crunch = function(code) {
                 buffer.push8(GPS_CONFIG.auto_config)
                     .push8(GPS_CONFIG.auto_baud);
 
-                if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                     buffer.push8(GPS_CONFIG.home_point_once)
                           .push8(GPS_CONFIG.ublox_use_galileo);
                 }
@@ -1771,15 +1766,12 @@ MspHelper.prototype.crunch = function(code) {
                   .push8(GPS_RESCUE.sanityChecks)
                   .push8(GPS_RESCUE.minSats);
 
-                if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                     buffer.push16(GPS_RESCUE.ascendRate)
                           .push16(GPS_RESCUE.descendRate)
                           .push8(GPS_RESCUE.allowArmingWithoutFix)
                           .push8(GPS_RESCUE.altitudeMode);
                 }
-            break;
-        case MSPCodes.MSP_SET_COMPASS_CONFIG:
-            buffer.push16(Math.round(COMPASS_CONFIG.mag_declination * 100));
             break;
         case MSPCodes.MSP_SET_RSSI_CONFIG:
             buffer.push8(RSSI_CONFIG.channel);
@@ -2023,7 +2015,7 @@ MspHelper.prototype.crunch = function(code) {
                           .push8(FILTER_CONFIG.gyro_rpm_notch_harmonics)
                           .push8(FILTER_CONFIG.gyro_rpm_notch_min_hz);
                 }
-                if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                     buffer.push16(FILTER_CONFIG.dyn_notch_max_hz);
                 }
             }
@@ -2085,7 +2077,7 @@ MspHelper.prototype.crunch = function(code) {
                                     if(semver.gte(CONFIG.apiVersion, "1.42.0")) {
                                         buffer.push8(ADVANCED_TUNING.itermRelaxCutoff);
 
-                                        if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+                                        if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                                             buffer.push8(ADVANCED_TUNING.motorOutputLimit)
                                                   .push8(ADVANCED_TUNING.autoProfileCellCount)
                                                   .push8(ADVANCED_TUNING.idleMinRpm);
@@ -2762,12 +2754,12 @@ MspHelper.prototype.setArmingEnabled = function(doEnable, disableRunawayTakeoffP
 }
 
 MspHelper.prototype.loadSerialConfig = function(callback) {
-    const mspCode = semver.gte(CONFIG.apiVersion, "1.43.0") ? MSPCodes.MSP2_COMMON_SERIAL_CONFIG : MSPCodes.MSP_CF_SERIAL_CONFIG;
+    const mspCode = semver.gte(CONFIG.apiVersion, API_VERSION_1_43) ? MSPCodes.MSP2_COMMON_SERIAL_CONFIG : MSPCodes.MSP_CF_SERIAL_CONFIG;
     MSP.send_message(mspCode, false, false, callback);
 };
 
 MspHelper.prototype.sendSerialConfig = function(callback) {
-    const mspCode = semver.gte(CONFIG.apiVersion, "1.43.0") ? MSPCodes.MSP2_COMMON_SET_SERIAL_CONFIG : MSPCodes.MSP_SET_CF_SERIAL_CONFIG;
+    const mspCode = semver.gte(CONFIG.apiVersion, API_VERSION_1_43) ? MSPCodes.MSP2_COMMON_SET_SERIAL_CONFIG : MSPCodes.MSP_SET_CF_SERIAL_CONFIG;
     MSP.send_message(mspCode, mspHelper.crunch(mspCode), false, callback);
 };
 

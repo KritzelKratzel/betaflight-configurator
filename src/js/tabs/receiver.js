@@ -265,6 +265,10 @@ TABS.receiver.initialize = function (callback) {
                 RX_CONFIG.rcInterpolationInterval = parseInt($('input[name="rcInterpolationInterval-number"]').val());
             }
 
+            if (semver.gte(CONFIG.apiVersion, "1.42.0")) {
+                RX_CONFIG.rcSmoothingAutoSmoothness = parseInt($('input[name="rcSmoothingAutoSmoothness-number"]').val());
+            }
+
             function save_rssi_config() {
                 MSP.send_message(MSPCodes.MSP_SET_RSSI_CONFIG, mspHelper.crunch(MSPCodes.MSP_SET_RSSI_CONFIG), false, save_rc_configs);
             }
@@ -326,7 +330,7 @@ TABS.receiver.initialize = function (callback) {
         });
 
         let showBindButton = false;
-        if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+        if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
             showBindButton = bit_check(CONFIG.targetCapabilities, FC.TARGET_CAPABILITIES_FLAGS.SUPPORTS_RX_BIND);
 
             $("a.bind").click(function() {
@@ -396,7 +400,7 @@ TABS.receiver.initialize = function (callback) {
             rcSmoothingnDerivativeNumberElement.val(RX_CONFIG.rcSmoothingDerivativeCutoff);
             var rc_smoothing_derivative_type = $('select[name="rcSmoothingDerivativeType-select"]');
 
-            if (semver.gte(CONFIG.apiVersion, "1.43.0")) {
+            if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                 rc_smoothing_derivative_type.append($(`<option value="3">${i18n.getMessage("receiverRcSmoothingDerivativeTypeAuto")}</option>`));
             }
 
@@ -426,9 +430,6 @@ TABS.receiver.initialize = function (callback) {
                 $('select[name="rcSmoothing-input-manual-select"]').change();
 
                 var rc_smoothing_auto_smoothness = $('input[name="rcSmoothingAutoSmoothness-number"]');
-                rc_smoothing_auto_smoothness.change(function() {
-                    RX_CONFIG.rcSmoothingAutoSmoothness = $(this).val();
-                });
                 rc_smoothing_auto_smoothness.val(RX_CONFIG.rcSmoothingAutoSmoothness);
             } else {
                 $('.tab-receiver .rcSmoothing-auto-smoothness').hide();

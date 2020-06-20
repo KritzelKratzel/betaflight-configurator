@@ -156,6 +156,9 @@ function finishClose(finishedCallback) {
 
         connectedTime = undefined;
     }
+    // close reset to custom defaults dialog
+    $('#dialogResetToCustomDefaults')[0].close();
+
     analytics.resetFlightControllerData();
 
     serial.disconnect(onClosed);
@@ -165,6 +168,9 @@ function finishClose(finishedCallback) {
 
     GUI.connected_to = false;
     GUI.allowedTabs = GUI.defaultAllowedTabsWhenDisconnected.slice();
+    // close problems dialog
+    $('#dialogReportProblems-closebtn').click();
+
     // Reset various UI elements
     $('span.i2c-error').text(0);
     $('span.cycle-time').text(0);
@@ -192,6 +198,16 @@ function finishClose(finishedCallback) {
     finishedCallback();
 }
 
+function setConnectionTimeout() {
+    // disconnect after 10 seconds with error if we don't get IDENT data
+    GUI.timeout_add('connecting', function () {
+        if (!CONFIGURATOR.connectionValid) {
+            GUI.log(i18n.getMessage('noConfigurationReceived'));
+
+            $('div.connect_controls a.connect').click(); // disconnect
+        }
+    }, 10000);
+}
 
 function onOpen(openInfo) {
     if (openInfo) {
@@ -218,14 +234,7 @@ function onOpen(openInfo) {
 
         serial.onReceive.addListener(read_serial);
 
-        // disconnect after 10 seconds with error if we don't get IDENT data
-        GUI.timeout_add('connecting', function () {
-            if (!CONFIGURATOR.connectionValid) {
-                GUI.log(i18n.getMessage('noConfigurationReceived'));
-
-                $('div.connect_controls a.connect').click(); // disconnect
-            }
-        }, 10000);
+        setConnectionTimeout();
 
         FC.resetState();
         MSP.listen(update_packet_error);
@@ -238,13 +247,13 @@ function onOpen(openInfo) {
 
             GUI.log(i18n.getMessage('apiVersionReceived', [CONFIG.apiVersion]));
 
-            if (semver.gte(CONFIG.apiVersion, CONFIGURATOR.apiVersionAccepted)) {
+            if (semver.gte(CONFIG.apiVersion, CONFIGURATOR.API_VERSION_ACCEPTED)) {
 
                 MSP.send_message(MSPCodes.MSP_FC_VARIANT, false, false, function () {
                     analytics.setFlightControllerData(analytics.DATA.FIRMWARE_TYPE, CONFIG.flightControllerIdentifier);
                     if (CONFIG.flightControllerIdentifier === 'BTFL') {
                         MSP.send_message(MSPCodes.MSP_FC_VERSION, false, false, function () {
-                             analytics.setFlightControllerData(analytics.DATA.FIRMWARE_VERSION, CONFIG.flightControllerVersion);
+                            analytics.setFlightControllerData(analytics.DATA.FIRMWARE_VERSION, CONFIG.flightControllerVersion);
 
                             GUI.log(i18n.getMessage('fcInfoReceived', [CONFIG.flightControllerIdentifier, CONFIG.flightControllerVersion]));
                             updateStatusBarVersion(CONFIG.flightControllerVersion, CONFIG.flightControllerIdentifier);
@@ -278,7 +287,7 @@ function onOpen(openInfo) {
 
                 var dialog = $('.dialogConnectWarning')[0];
 
-                $('.dialogConnectWarning-content').html(i18n.getMessage('firmwareVersionNotSupported', [CONFIGURATOR.apiVersionAccepted]));
+                $('.dialogConnectWarning-content').html(i18n.getMessage('firmwareVersionNotSupported', [CONFIGURATOR.API_VERSION_ACCEPTED]));
 
                 $('.dialogConnectWarning-closebtn').click(function() {
                     dialog.close();
@@ -333,7 +342,7 @@ function processBoardInfo() {
 
             dialog.close();
 
-            GUI.timeout_add('connecting', function () {
+            GUI.timeout_add('disconnect', function () {
                 $('div.connect_controls a.connect').click(); // disconnect
             }, 0);
         });
@@ -343,28 +352,54 @@ function processBoardInfo() {
 
             dialog.close();
 
+            setConnectionTimeout();
+
             checkReportProblems();
         });
 
         dialog.showModal();
+
+        GUI.timeout_remove('connecting'); // kill connecting timer
     } else {
         checkReportProblems();
     }
 }
 
 function checkReportProblems() {
+    const PROBLEM_ANALYTICS_EVENT = 'ProblemFound';
+    const problemItemTemplate = $('#dialogReportProblems-listItemTemplate');
+
+    function checkReportProblem(problemName, problemDialogList) {
+        if (bit_check(CONFIG.configurationProblems, FC.CONFIGURATION_PROBLEM_FLAGS[problemName])) {
+            problemItemTemplate.clone().html(i18n.getMessage(`reportProblemsDialog${problemName}`)).appendTo(problemDialogList);
+
+            analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, PROBLEM_ANALYTICS_EVENT, problemName);
+
+            return true;
+        }
+
+        return false;
+    }
+
     MSP.send_message(MSPCodes.MSP_STATUS, false, false, function () {
         let needsProblemReportingDialog = false;
         const problemDialogList = $('#dialogReportProblems-list');
         problemDialogList.empty();
-        const problemItemTemplate = $('.dialogReportProblems-listItem');
-        const PROBLEM_ANALYTICS_EVENT = 'ProblemFound';
 
-        if (have_sensor(CONFIG.activeSensors, 'acc') && bit_check(CONFIG.targetCapabilities, FC.TARGET_CAPABILITIES_FLAGS.ACC_NEEDS_CALIBRATION)) {
+        if (semver.gt(CONFIG.apiVersion, CONFIGURATOR.API_VERSION_MAX_SUPPORTED)) {
+            const problemName = 'API_VERSION_MAX_SUPPORTED';
+            problemItemTemplate.clone().html(i18n.getMessage(`reportProblemsDialog${problemName}`,
+                [CONFIGURATOR.latestVersion, CONFIGURATOR.latestVersionReleaseUrl, CONFIGURATOR.version, CONFIG.flightControllerVersion])).appendTo(problemDialogList);
             needsProblemReportingDialog = true;
-            problemDialogList.append(problemItemTemplate.clone().html(i18n.getMessage('reportProblemsDialogAccCalibrationNeeded')));
 
-            analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, PROBLEM_ANALYTICS_EVENT, 'AccNotCalibrated');
+            analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, PROBLEM_ANALYTICS_EVENT,
+                `${problemName};${CONFIGURATOR.API_VERSION_MAX_SUPPORTED};${CONFIG.apiVersion}`);
+        }
+
+        needsProblemReportingDialog = checkReportProblem('MOTOR_PROTOCOL_DISABLED', problemDialogList) || needsProblemReportingDialog;
+
+        if (have_sensor(CONFIG.activeSensors, 'acc')) {
+            needsProblemReportingDialog = checkReportProblem('ACC_NEEDS_CALIBRATION', problemDialogList) || needsProblemReportingDialog;
         }
 
         if (needsProblemReportingDialog) {
