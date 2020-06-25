@@ -1084,6 +1084,9 @@ MspHelper.prototype.process_data = function(dataHandler) {
                             if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                                 FILTER_CONFIG.dyn_notch_max_hz = data.readU16();
                             }
+                            if (semver.gte(CONFIG.apiVersion, API_VERSION_1_44)) {
+                                FILTER_CONFIG.dyn_lpf_curve_expo = data.readU8();
+                            }
                         }
                     }
                 }
@@ -1150,6 +1153,12 @@ MspHelper.prototype.process_data = function(dataHandler) {
                                                 ADVANCED_TUNING.motorOutputLimit = data.readU8();
                                                 ADVANCED_TUNING.autoProfileCellCount = data.read8();
                                                 ADVANCED_TUNING.idleMinRpm = data.readU8();
+
+                                                if(semver.gte(CONFIG.apiVersion, API_VERSION_1_44)) {
+                                                    ADVANCED_TUNING.ff_interpolate_sp = data.readU8();
+                                                    ADVANCED_TUNING.ff_smooth_factor = data.readU8();
+                                                    ADVANCED_TUNING.ff_boost = data.readU8();
+                                                }
                                             }
                                         }
                                     }
@@ -2018,6 +2027,9 @@ MspHelper.prototype.crunch = function(code) {
                 if (semver.gte(CONFIG.apiVersion, API_VERSION_1_43)) {
                     buffer.push16(FILTER_CONFIG.dyn_notch_max_hz);
                 }
+                if (semver.gte(CONFIG.apiVersion, API_VERSION_1_44)) {
+                    buffer.push8(FILTER_CONFIG.dyn_lpf_curve_expo);
+                }
             }
             break;
         case MSPCodes.MSP_SET_PID_ADVANCED:
@@ -2081,6 +2093,12 @@ MspHelper.prototype.crunch = function(code) {
                                             buffer.push8(ADVANCED_TUNING.motorOutputLimit)
                                                   .push8(ADVANCED_TUNING.autoProfileCellCount)
                                                   .push8(ADVANCED_TUNING.idleMinRpm);
+
+                                            if(semver.gte(CONFIG.apiVersion, API_VERSION_1_44)) {
+                                                buffer.push8(ADVANCED_TUNING.ff_interpolate_sp)
+                                                      .push8(ADVANCED_TUNING.ff_smooth_factor)
+                                                      .push8(ADVANCED_TUNING.ff_boost);
+                                            }
                                         }
                                     }
                                 }

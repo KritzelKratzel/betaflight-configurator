@@ -405,6 +405,7 @@ var FC = {
             dterm_lowpass_type:         0,
             dterm_lowpass2_hz:          0,
             dterm_lowpass2_type:        0,
+            dyn_lpf_curve_expo:         0,
             dterm_notch_hz:             0,
             dterm_notch_cutoff:         0,
             yaw_lowpass_hz:             0,
@@ -457,6 +458,9 @@ var FC = {
             motorOutputLimit:           0,
             autoProfileCellCount:       0,
             idleMinRpm:                 0,
+            ff_interpolate_sp:          0,
+            ff_smooth_factor:           0,
+            ff_boost:                   0,
         };
         ADVANCED_TUNING_ACTIVE = { ...ADVANCED_TUNING };
 
@@ -568,6 +572,7 @@ var FC = {
             dterm_lowpass_hz:               100,
             dterm_lowpass_dyn_min_hz:       150,
             dterm_lowpass_dyn_max_hz:       250,
+            dyn_lpf_curve_expo:             5,
             dterm_lowpass_type:             FC.FILTER_TYPE_FLAGS.PT1,
             dterm_lowpass2_hz:              150,
             dterm_lowpass2_type:            FC.FILTER_TYPE_FLAGS.BIQUAD,
