@@ -92,6 +92,9 @@
     "analyticsOptOut": {
         "message": "Opt out of the anonymised collection of statistics data"
     },
+    "cordovaForceComputerUI": {
+        "message": "Use computers interface instead of phones interface"
+    },
     "language_changed": {
         "message": "Language change saved"
     },
@@ -298,6 +301,9 @@
     "tabHelp": {
         "message": "Documentation & Support"
     },
+    "tabOptions": {
+        "message": "Options"
+    },
 
     "tabSetup": {
         "message": "Setup"
@@ -500,7 +506,7 @@
         "message": "This firmware version is <span class=\"message-negative\">not supported</span>. Please upgrade to firmware that supports api version <strong>$1</strong> or higher. Use CLI for backup before flashing. CLI backup/restore procedure is in the documention.<br />Alternatively download and use an old version of the configurator if you are not ready to upgrade."
     },
     "firmwareTypeNotSupported": {
-        "message": "Non - Cleanflight/Betaflight firmware is <span class=\"message-negative\">not supported</span>, except for CLI mode."
+        "message": "Non - Betaflight firmware is <span class=\"message-negative\">not supported</span>, except for CLI mode."
     },
     "firmwareUpgradeRequired": {
         "message": "The firmware on this device needs upgrading to a newer version. Use CLI for backup before flashing. CLI backup/restore procedure is in the documention.<br />Alternatively download and use an old version of the configurator if you are not ready to upgrade."
@@ -1462,7 +1468,15 @@
     "configurationButtonSave": {
         "message": "Save and Reboot"
     },
-
+    "dialogDynFiltersChangeTitle": {
+        "message": "Dynamic Notch values change"
+    },
+    "dialogDynFiltersChangeNote": {
+        "message": "<span class=\"message-negative\"><b>WARNING: Some dynamic notch values have been changed to default values</b></span> because the RPM filtering has been activated/deactivated.<br> Please, check before flying."
+    },
+    "dialogDynFiltersConfirm": {
+        "message": "OK"
+    },
     "portsIdentifier": {
         "message": "Identifier"
     },
@@ -3641,6 +3655,15 @@
     "pidTuningVbatPidCompensationHelp": {
         "message": "Increases the PID values to compensate when Vbat gets lower. This will give more constant flight characteristics throughout the flight. The amount of compensation that is applied is calculated from the $t(powerBatteryMaximum.message) set in the $t(tabPower.message) page, so make sure that is set to something appropriate."
     },
+    "pidTuningVbatSagCompensation": {
+        "message": "Vbat Sag Compensation"
+    },
+    "pidTuningVbatSagCompensationHelp": {
+        "message": "Gives consistent throttle and PID performance over the usable battery voltage range by compensating for battery sag. The amount of compensation can be varied between 0 and 100%. Full compensation (100%) is recommended.<br><br>Visit <a href=\"https://github.com/betaflight/betaflight/wiki/4.2-Tuning-Notes#dynamic-battery-sag-compensation\"target=\"_blank\" rel=\"noopener noreferrer\">this wiki entry</a> for more info."
+    },
+    "pidTuningVbatSagValue": {
+        "message": "%"
+    },
     "pidTuningItermRotation": {
         "message": "I Term Rotation"
     },
@@ -5749,5 +5772,74 @@
     "gpsSbasNone": {
         "message": "None",
         "description": "One of the options selectable for the GPS SBAS system"
+    },
+    "dialogFileNameTitle": {
+        "message": "File name"
+    },
+    "dialogFileNameDescription": {
+        "message": "The file will be saved in the '{{folder}}' folder in your internal storage."
+    },
+    "dialogFileAlreadyExistsTitle": {
+        "message": "This file already exists!"
+    },
+    "dialogFileAlreadyExistsDescription": {
+        "message": "Overwrite ?"
+    },
+    "cordovaCheckingWebview": {
+        "message": "Checking webview applications ..."
+    },
+    "cordovaIncompatibleWebview": {
+        "message": "Incompatible webview"
+    },
+    "cordovaWebviewTroubleshootingMsg": {
+        "message": "You must update your device's webview in order to use the configurator."
+    },
+    "cordovaWebviewTroubleshootingMsg2": {
+        "message": "The tool below is intended to help you to install a new webview or to update an already installed webview."
+    },
+    "cordovaAvailableWebviews": {
+        "message": "Available webview applications on your device"
+    },
+    "cordovaWebviewInstall": {
+        "message": "Installing the <b>{{app}}</b> app can resolve this compatibility issue."
+    },
+    "cordovaWebviewInstallBtn": {
+        "message": "Install from the Google Play Store"
+    },
+    "cordovaWebviewUninstall": {
+        "message": "Uninstalling the <b>{{app}}</b> app can resolve this compatibility issue. If you are not able to uninstall it, try to disable it from the settings app."
+    },
+    "cordovaWebviewUninstallBtn1": {
+        "message": "Uninstall from the Google Play Store"
+    },
+    "cordovaWebviewUninstallBtn2": {
+        "message": "Uninstall / disable from the settings"
+    },
+    "cordovaWebviewUpdate": {
+        "message": "Updating the <b>{{app}}</b> app can resolve this compatibility issue."
+    },
+    "cordovaWebviewUpdateBtn": {
+        "message": "Update from the Google Play Store"
+    },
+    "cordovaWebviewEnable": {
+        "message": "Go into the tab of informations about your device in the settings and tap 10 times on the build version number to enable 'Developper options'. After that, search and go in the developper options and select <b>{{app}}</b> as webview provider."
+    },
+    "cordovaWebviewEnableBtn": {
+        "message": "Open settings"
+    },
+    "cordovaWebviewIncompatible": {
+        "message": "Your device seems to be not compatible. Try to search other ways to update your webview"
+    },
+    "cordovaNoWebview": {
+        "message": "No webview application installed / enabled"
+    },
+    "cordovaWebviewUsed": {
+        "message": "used"
+    },
+    "cordovaExitAppTitle": {
+        "message": "Confirmation"
+    },
+    "cordovaExitAppMessage": {
+        "message": "Do you really want to close the configurator?"
     }
 }

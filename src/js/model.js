@@ -47,7 +47,7 @@ var Model = function (wrapper, canvas) {
     this.renderer.setSize(this.wrapper.width() * 2, this.wrapper.height() * 2);
 
     // load the model including materials
-    var model_file = useWebGLRenderer ? mixerList[MIXER_CONFIG.mixer - 1].model : 'fallback';
+    var model_file = useWebGLRenderer ? mixerList[FC.MIXER_CONFIG.mixer - 1].model : 'fallback';
 
     // Temporary workaround for 'custom' model until akfreak's custom model is merged.
     if (model_file == 'custom') { model_file = 'fallback'; }
@@ -87,7 +87,7 @@ var Model = function (wrapper, canvas) {
 };
 
 Model.prototype.loadJSON = function (model_file, callback) {
-    const loader = new THREE.LegacyJSONLoader();
+    const loader = new THREE.JSONLoader();
 
     loader.load(`./resources/models/${model_file}.json`, function (geometry, materials) {
         const modelMaterial = new THREE.MeshFaceMaterial(materials);
@@ -146,6 +146,8 @@ Model.prototype.resize = function () {
 };
 
 Model.prototype.dispose = function () {
-    this.renderer.forceContextLoss();
-    this.renderer.dispose();
+    if (this.canUseWebGLRenderer()) {
+        this.renderer.forceContextLoss();
+        this.renderer.dispose();
+    }
 };
