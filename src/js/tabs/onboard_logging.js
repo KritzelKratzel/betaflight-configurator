@@ -342,6 +342,11 @@ TABS.onboard_logging.initialize = function (callback) {
                 {text: "DYN_IDLE"},
                 {text: "FF_LIMIT"},
                 {text: "FF_INTERPOLATED"},
+                {text: "BLACKBOX_OUTPUT"},
+                {text: "GYRO_SAMPLE"},
+                {text: "RX_TIMING"},
+                {text: "D_LPF"},
+                {text: "VTX_TRAMP"},
             ];
 
             for (let i = 0; i < FC.PID_ADVANCED_CONFIG.debugModeCount; i++) {
@@ -353,6 +358,22 @@ TABS.onboard_logging.initialize = function (callback) {
             }
 
             debugModeSelect.val(FC.PID_ADVANCED_CONFIG.debugMode);
+
+            // Convert to select2 and order alphabetic
+            debugModeSelect.select2({
+                sorter(data) {
+                    return data.sort(function(a, b) {
+                        if (a.text === "NONE" || b.text === i18n.getMessage('onboardLoggingDebugModeUnknown')) {
+                            return -1;
+                        } else if (b.text ==="NONE" || a.text === i18n.getMessage('onboardLoggingDebugModeUnknown')) {
+                            return 1;
+                        } else {
+                            return a.text.localeCompare(b.text);
+                        }
+                    });
+                },
+            });
+
         } else {
             $('.blackboxDebugMode').hide();
         }
