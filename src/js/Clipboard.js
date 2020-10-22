@@ -57,28 +57,6 @@ Clipboard._configureClipboardAsNwJs = function(nwGui) {
     };
 };
 
-Clipboard._configureClipboardAsChrome = function() {
-
-    console.log('Chrome Clipboard available');
-
-    this.available = true;
-    this.readAvailable = false; // FIXME: for some reason the read is not working
-    this.writeAvailable = true;
-
-    this.writeText = function(text, onSuccess, onError) {
-        navigator.clipboard.writeText(text)
-        .then(onSuccess)
-        .catch(onError);
-    };
-
-    this.readText = function(onSuccess, onError) {
-        navigator.clipboard.readText()
-            .then(onSuccess)
-            .catch(onError);
-    };
-
-};
-
 Clipboard._configureClipboardAsCordova = function() {
 
     console.log('Cordova Clipboard available');
@@ -114,20 +92,10 @@ Clipboard._configureClipboardAsOther = function() {
     };
 };
 
-
-switch (GUI.Mode) {
-case GUI_Modes.NWJS:
+if (GUI.isNWJS()){
     Clipboard._configureClipboardAsNwJs(GUI.nwGui);
-    break;
-
-case GUI_Modes.ChromeApp:
-    Clipboard._configureClipboardAsChrome();
-    break;
-
-case GUI_Modes.Cordova:
+} else if (GUI.isCordova()) {
     Clipboard._configureClipboardAsCordova();
-    break;
-
-default:
+} else {
     Clipboard._configureClipboardAsOther();
 }

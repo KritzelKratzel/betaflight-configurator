@@ -23,7 +23,7 @@ TABS.vtx.initialize = function (callback) {
 
     self.analyticsChanges = {};
 
-    this.supported = semver.gte(FC.CONFIG.apiVersion, "1.42.0");
+    this.supported = semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_42);
 
     if (!this.supported) {
         load_html();
@@ -116,9 +116,8 @@ TABS.vtx.initialize = function (callback) {
         // Load schema
         const urlVtxSchema = chrome.runtime.getURL(`resources/jsonschema/vtxconfig_schema-${vtxConfig.version}.json`);
 
-        if (GUI.Mode === GUI_Modes.ChromeApp || GUI.isCordova()) {
-            // FIXME the ChromeOs don't let us use a Schema Validator because almost all of them use eval, and/or use require
-            // On android : Fetch API cannot load : URL scheme "file" is not supported
+        if (GUI.isCordova()) {
+            // FIXME On android : Fetch API cannot load : URL scheme "file" is not supported
             callback_valid();
         } else {
             fetch(urlVtxSchema)
@@ -878,7 +877,7 @@ TABS.vtx.initialize = function (callback) {
             FC.VTX_CONFIG.vtx_band = parseInt($("#vtx_band").val());
             FC.VTX_CONFIG.vtx_channel = parseInt($("#vtx_channel").val());
             FC.VTX_CONFIG.vtx_frequency = 0;
-            if (semver.lt(FC.CONFIG.apiVersion, "1.42.0")) {
+            if (semver.lt(FC.CONFIG.apiVersion, API_VERSION_1_42)) {
                 if (FC.VTX_CONFIG.vtx_band > 0 || FC.VTX_CONFIG.vtx_channel > 0) {
                     FC.VTX_CONFIG.vtx_frequency = (band - 1) * 8 + (channel - 1);
                 }

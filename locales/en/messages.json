@@ -2,10 +2,6 @@
     "translation_version": {
         "message": "0"
     },
-    "windowTitle": {
-        "message": "Betaflight Configurator",
-        "description": "Title of the application window, usually not translated"
-    },
     "yes": {
         "message": "Yes",
         "description": "General Yes message to be used across the application"
@@ -64,9 +60,6 @@
     },
     "close": {
         "message": "Close"
-    },
-    "cancel": {
-        "message": "Cancel"
     },
     "cancel": {
         "message": "Cancel"
@@ -625,25 +618,32 @@
     },
 
     "statusbar_port_utilization": {
-        "message": "Port utilization:"
+        "message": "Port utilization:",
+        "description": "Port utilization text shown in the status bar"
     },
     "statusbar_usage_download": {
-        "message": "D: $1%"
+        "message": "D:",
+        "description": "References 'Download' in the status bar, port utilization. Keep one character long if possible"
     },
     "statusbar_usage_upload": {
-        "message": "U: $1%"
+        "message": "U:",
+        "description": "References 'Upload' in the status bar, port utilization. Keep one character long if possible"
     },
     "statusbar_packet_error": {
-        "message": "Packet error:"
+        "message": "Packet error:",
+        "description": "Packet error text shown in the status bar"
     },
     "statusbar_i2c_error": {
-        "message": "I2C error:"
+        "message": "I2C error:",
+        "description": "CPU load text shown in the status bar"
     },
     "statusbar_cycle_time": {
-        "message": "Cycle Time:"
+        "message": "Cycle Time:",
+        "description": "Cycle time text shown in the status bar"
     },
     "statusbar_cpu_load": {
-        "message": "CPU Load: $1%"
+        "message": "CPU Load:",
+        "description": "CPU load text shown in the status bar"
     },
 
     "dfu_connect_message": {
@@ -2613,7 +2613,7 @@
         "message": "Gyroscope - deg/s"
     },
     "sensorsAccelTitle": {
-        "message": "Accelerometer - g"
+        "message": "Accelerometer - g (deg)"
     },
     "sensorsMagTitle": {
         "message": "Magnetometer - Ga"
@@ -3708,6 +3708,15 @@
         "message": "Gives consistent throttle and PID performance over the usable battery voltage range by compensating for battery sag. The amount of compensation can be varied between 0 and 100%. Full compensation (100%) is recommended.<br><br>Visit <a href=\"https://github.com/betaflight/betaflight/wiki/4.2-Tuning-Notes#dynamic-battery-sag-compensation\"target=\"_blank\" rel=\"noopener noreferrer\">this wiki entry</a> for more info."
     },
     "pidTuningVbatSagValue": {
+        "message": "%"
+    },
+    "pidTuningThrustLinearization": {
+        "message": "Thrust Linearization"
+    },
+    "pidTuningThrustLinearizationHelp": {
+        "message": "Compensates for the non-linear relationship between throttle and thrust by applying an inverse motor curve to the motor output. The amount of compensation can be varied between 0 and 150%."
+    },
+    "pidTuningThrustLinearValue": {
         "message": "%"
     },
     "pidTuningItermRotation": {

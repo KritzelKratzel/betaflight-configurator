@@ -194,7 +194,7 @@ TABS.sensors.initialize = function (callback) {
             if (!have_sensor(FC.CONFIG.activeSensors, 'mag')) {
                 checkboxes.eq(2).prop('disabled', true);
             }
-            if (!(have_sensor(FC.CONFIG.activeSensors, 'baro') || (semver.gte(FC.CONFIG.apiVersion, "1.40.0") && have_sensor(FC.CONFIG.activeSensors, 'gps')))) {
+            if (!(have_sensor(FC.CONFIG.activeSensors, 'baro') || (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_40) && have_sensor(FC.CONFIG.activeSensors, 'gps')))) {
                 checkboxes.eq(3).prop('disabled', true);
             }
             if (!have_sensor(FC.CONFIG.activeSensors, 'sonar')) {
@@ -243,7 +243,7 @@ TABS.sensors.initialize = function (callback) {
         });
 
         let altitudeHint_e = $('.tab-sensors #sensorsAltitudeHint');
-        if (semver.lt(FC.CONFIG.apiVersion, "1.40.0")) {
+        if (semver.lt(FC.CONFIG.apiVersion, API_VERSION_1_40)) {
             altitudeHint_e.hide();
         }
 
@@ -379,9 +379,15 @@ TABS.sensors.initialize = function (callback) {
 
                     samples_accel_i = addSampleToData(accel_data, samples_accel_i, FC.SENSOR_DATA.accelerometer);
                     drawGraph(accelHelpers, accel_data, samples_accel_i);
-                    raw_data_text_ements.x[1].text(FC.SENSOR_DATA.accelerometer[0].toFixed(2));
-                    raw_data_text_ements.y[1].text(FC.SENSOR_DATA.accelerometer[1].toFixed(2));
-                    raw_data_text_ements.z[1].text(FC.SENSOR_DATA.accelerometer[2].toFixed(2));
+                    const x = FC.SENSOR_DATA.accelerometer[0].toFixed(2);
+                    const y = FC.SENSOR_DATA.accelerometer[1].toFixed(2);
+                    const z = FC.SENSOR_DATA.accelerometer[2].toFixed(2);
+                    const pi = Math.PI;
+                    const rollACC = Math.round(Math.atan(y / (Math.sqrt(Math.pow(x, 2)) + (Math.pow(z, 2)))) * (180 / pi));
+                    const pitchACC = Math.round(Math.atan(x / (Math.sqrt(Math.pow(y, 2)) + (Math.pow(z, 2)))) * (180 / pi));
+                    raw_data_text_ements.x[1].text(`${x} (${rollACC})`);
+                    raw_data_text_ements.y[1].text(`${y} (${pitchACC})`);
+                    raw_data_text_ements.z[1].text(`${z}`);
                 }
 
                 if (checkboxes[2]) {

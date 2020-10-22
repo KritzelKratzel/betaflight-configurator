@@ -1,5 +1,62 @@
 'use strict';
 
+const INITIAL_CONFIG = {
+    apiVersion:                       "0.0.0",
+    flightControllerIdentifier:       '',
+    flightControllerVersion:          '',
+    version:                          0,
+    buildInfo:                        '',
+    multiType:                        0,
+    msp_version:                      0, // not specified using semantic versioning
+    capability:                       0,
+    cycleTime:                        0,
+    i2cError:                         0,
+    cpuload:                          0,
+    activeSensors:                    0,
+    mode:                             0,
+    profile:                          0,
+    uid:                              [0, 0, 0],
+    accelerometerTrims:               [0, 0],
+    name:                             '',
+    displayName:                      'JOE PILOT',
+    numProfiles:                      3,
+    rateProfile:                      0,
+    boardType:                        0,
+    armingDisableCount:               0,
+    armingDisableFlags:               0,
+    armingDisabled:                   false,
+    runawayTakeoffPreventionDisabled: false,
+    boardIdentifier:                  "",
+    boardVersion:                     0,
+    targetCapabilities:               0,
+    targetName:                       "",
+    boardName:                        "",
+    manufacturerId:                   "",
+    signature:                        [],
+    mcuTypeId:                        255,
+    configurationState:               0,
+    sampleRateHz:                     0,
+    configurationProblems:            0,
+    hardwareName:                     '',
+};
+
+const INITIAL_ANALOG = {
+    voltage:                    0,
+    mAhdrawn:                   0,
+    rssi:                       0,
+    amperage:                   0,
+    last_received_timestamp:    Date.now(), // FIXME this code lies, it's never been received at this point
+};
+
+const INITIAL_BATTERY_CONFIG = {
+    vbatmincellvoltage:         0,
+    vbatmaxcellvoltage:         0,
+    vbatwarningcellvoltage:     0,
+    capacity:                   0,
+    voltageMeterSource:         0,
+    currentMeterSource:         0,
+};
+
 const FC = {
 
     // define all the global variables that are uses to hold FC state
@@ -7,17 +64,43 @@ const FC = {
     ADJUSTMENT_RANGES: null,
     ADVANCED_TUNING: null,
     ADVANCED_TUNING_ACTIVE: null,
-    ANALOG: null,
+    ANALOG: {...INITIAL_CONFIG},
     ARMING_CONFIG: null,
     AUX_CONFIG: null,
     AUX_CONFIG_IDS: null,
-    BATTERY_CONFIG: null,
+    BATTERY_CONFIG: {...INITIAL_BATTERY_CONFIG},
     BATTERY_STATE: null,
     BEEPER_CONFIG: null,
     BF_CONFIG: null,          // Remove when we officialy retire BF 3.1
     BLACKBOX: null,
     BOARD_ALIGNMENT_CONFIG: null,
-    CONFIG: null,
+    // Shallow copy of original config and added getter
+    // getter allows this to be used with simple dot notation
+    // and bridges the vue and rest of the code
+    CONFIG: {
+        ...INITIAL_CONFIG,
+        get hardwareName() {
+            let name;
+            if (this.targetName) {
+                name = this.targetName;
+            } else {
+                name = this.boardIdentifier;
+            }
+
+            if (this.boardName && this.boardName !== name) {
+                name = `${this.boardName}(${name})`;
+            }
+
+            if (this.manufacturerId) {
+                name = `${this.manufacturerId}/${name}`;
+            }
+
+            return name;
+        },
+        set hardwareName(name) {
+            // NOOP, can't really be set. Maybe implement some logic?
+        },
+    },
     COPY_PROFILE: null,
     CURRENT_METERS: null,
     CURRENT_METER_CONFIGS: null,
@@ -72,43 +155,11 @@ const FC = {
     VTX_CONFIG: null,
 
     resetState () {
-        this.CONFIG = {
-            apiVersion:                       "0.0.0",
-            flightControllerIdentifier:       '',
-            flightControllerVersion:          '',
-            version:                          0,
-            buildInfo:                        '',
-            multiType:                        0,
-            msp_version:                      0, // not specified using semantic versioning
-            capability:                       0,
-            cycleTime:                        0,
-            i2cError:                         0,
-            activeSensors:                    0,
-            mode:                             0,
-            profile:                          0,
-            uid:                              [0, 0, 0],
-            accelerometerTrims:               [0, 0],
-            name:                             '',
-            displayName:                      'JOE PILOT',
-            numProfiles:                      3,
-            rateProfile:                      0,
-            boardType:                        0,
-            armingDisableCount:               0,
-            armingDisableFlags:               0,
-            armingDisabled:                   false,
-            runawayTakeoffPreventionDisabled: false,
-            boardIdentifier:                  "",
-            boardVersion:                     0,
-            targetCapabilities:               0,
-            targetName:                       "",
-            boardName:                        "",
-            manufacturerId:                   "",
-            signature:                        [],
-            mcuTypeId:                        255,
-            configurationState:               0,
-            sampleRateHz:                     0,
-            configurationProblems:            0,
-        };
+        // Using `Object.assign` instead of reassigning to
+        // trigger the updates on the Vue side
+        Object.assign(this.CONFIG, INITIAL_CONFIG);
+        Object.assign(this.ANALOG, INITIAL_CONFIG);
+        Object.assign(this.BATTERY_CONFIG, INITIAL_BATTERY_CONFIG);
 
         this.BF_CONFIG = {
             currentscale:               0,
@@ -249,13 +300,6 @@ const FC = {
             cno:                        [],
         };
 
-        this.ANALOG = {
-            voltage:                    0,
-            mAhdrawn:                   0,
-            rssi:                       0,
-            amperage:                   0,
-            last_received_timestamp:    Date.now(), // FIXME this code lies, it's never been received at this point
-        };
 
         this.VOLTAGE_METERS =           [];
         this.VOLTAGE_METER_CONFIGS =    [];
@@ -466,6 +510,7 @@ const FC = {
             ff_smooth_factor:           0,
             ff_boost:                   0,
             vbat_sag_compensation:      0,
+            thrustLinearization:        0,
         };
         this.ADVANCED_TUNING_ACTIVE = { ...this.ADVANCED_TUNING };
 
@@ -520,11 +565,11 @@ const FC = {
                 }
 
                 if ((flightControllerIdentifier === 'BTFL' && semver.gte(flightControllerVersion, "2.6.0")) ||
-                    (flightControllerIdentifier === 'CLFL' && semver.gte(apiVersion, "1.31.0"))) {
+                    (flightControllerIdentifier === 'CLFL' && semver.gte(apiVersion, API_VERSION_1_31))) {
                     result.push('JETIEXBUS');
                 }
 
-                if (semver.gte(apiVersion, "1.31.0")) {
+                if (semver.gte(apiVersion, API_VERSION_1_31)) {
                     result.push('CRSF');
                 }
 
@@ -532,16 +577,20 @@ const FC = {
                     result.push('SPEKTRUM2048/SRXL');
                 }
 
-                if (semver.gte(apiVersion, "1.35.0")) {
+                if (semver.gte(apiVersion, API_VERSION_1_35)) {
                     result.push('TARGET_CUSTOM');
                 }
 
-                if (semver.gte(apiVersion, "1.37.0")) {
+                if (semver.gte(apiVersion, API_VERSION_1_37)) {
                     result.push('FrSky FPort');
                 }
 
-                if (semver.gte(apiVersion, "1.42.0")) {
+                if (semver.gte(apiVersion, API_VERSION_1_42)) {
                     result.push('SPEKTRUM SRXL2');
+                }
+
+                if (semver.gte(apiVersion, API_VERSION_1_44)) {
+                    result.push('IRC GHOST');
                 }
 
                 return result;
@@ -666,6 +715,7 @@ const FC = {
         return name;
     },
 
+
     MCU_TYPES: {
         0: "SIMULATOR",
         1: "F103",
@@ -707,7 +757,7 @@ const FC = {
 
     boardHasVcp() {
         let hasVcp = false;
-        if (semver.gte(this.CONFIG.apiVersion, "1.37.0")) {
+        if (semver.gte(this.CONFIG.apiVersion, API_VERSION_1_37)) {
             hasVcp = bit_check(this.CONFIG.targetCapabilities, this.TARGET_CAPABILITIES_FLAGS.HAS_VCP);
         } else {
             hasVcp = BOARD.find_board_definition(this.CONFIG.boardIdentifier).vcp;
@@ -724,9 +774,9 @@ const FC = {
     getFilterDefaults() {
         const versionFilterDefaults = this.DEFAULT;
 
-        if (semver.eq(this.CONFIG.apiVersion, "1.40.0")) {
+        if (semver.eq(this.CONFIG.apiVersion, API_VERSION_1_40)) {
             versionFilterDefaults.dterm_lowpass2_hz = 200;
-        } else if (semver.gte(this.CONFIG.apiVersion, "1.41.0")) {
+        } else if (semver.gte(this.CONFIG.apiVersion, API_VERSION_1_41)) {
             versionFilterDefaults.gyro_lowpass_hz = 150;
             versionFilterDefaults.gyro_lowpass_type = this.FILTER_TYPE_FLAGS.BIQUAD;
             versionFilterDefaults.gyro_lowpass2_hz = 0;
@@ -735,7 +785,7 @@ const FC = {
             versionFilterDefaults.dterm_lowpass_type = this.FILTER_TYPE_FLAGS.BIQUAD;
             versionFilterDefaults.dterm_lowpass2_hz = 150;
             versionFilterDefaults.dterm_lowpass2_type = this.FILTER_TYPE_FLAGS.BIQUAD;
-            if (semver.gte(this.CONFIG.apiVersion, "1.42.0")) {
+            if (semver.gte(this.CONFIG.apiVersion, API_VERSION_1_42)) {
                 versionFilterDefaults.gyro_lowpass_hz = 200;
                 versionFilterDefaults.gyro_lowpass_dyn_min_hz = 200;
                 versionFilterDefaults.gyro_lowpass_dyn_max_hz = 500;

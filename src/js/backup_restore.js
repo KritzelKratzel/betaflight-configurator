@@ -116,13 +116,13 @@ function configuration_backup(callback) {
         if (semver.gte(FC.CONFIG.apiVersion, "1.19.0")) {
             uniqueData.push(MSPCodes.MSP_LED_STRIP_MODECOLOR);
         }
-        if (semver.gte(FC.CONFIG.apiVersion, "1.33.0")) {
+        if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_33)) {
             uniqueData.push(MSPCodes.MSP_MOTOR_CONFIG);
             uniqueData.push(MSPCodes.MSP_RSSI_CONFIG);
             uniqueData.push(MSPCodes.MSP_GPS_CONFIG);
             uniqueData.push(MSPCodes.MSP_FEATURE_CONFIG);
         }
-        if (semver.gte(FC.CONFIG.apiVersion, "1.41.0")) {
+        if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_41)) {
             uniqueData.push(MSPCodes.MSP_MODE_RANGES_EXTRA);
         }
     }
@@ -166,16 +166,16 @@ function configuration_backup(callback) {
                     configuration.FAILSAFE_CONFIG = jQuery.extend(true, {}, FC.FAILSAFE_CONFIG);
                     configuration.RXFAIL_CONFIG = jQuery.extend(true, [], FC.RXFAIL_CONFIG);
                 }
-                if (semver.gte(FC.CONFIG.apiVersion, "1.33.0")) {
+                if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_33)) {
                     configuration.RSSI_CONFIG = jQuery.extend(true, {}, FC.RSSI_CONFIG);
                     configuration.FEATURE_CONFIG = jQuery.extend(true, {}, FC.FEATURE_CONFIG);
                     configuration.MOTOR_CONFIG = jQuery.extend(true, {}, FC.MOTOR_CONFIG);
                     configuration.GPS_CONFIG = jQuery.extend(true, {}, FC.GPS_CONFIG);
                 }
-                if (semver.gte(FC.CONFIG.apiVersion, "1.36.0")) {
+                if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_36)) {
                     configuration.BEEPER_CONFIG = jQuery.extend(true, {}, FC.BEEPER_CONFIG);
                 }
-                if (semver.gte(FC.CONFIG.apiVersion, "1.41.0")) {
+                if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_41)) {
                     configuration.MODE_RANGES_EXTRA = jQuery.extend(true, [], FC.MODE_RANGES_EXTRA);
                 }
 
@@ -768,7 +768,7 @@ function configuration_restore(callback) {
                 }
 
                 function upload_mode_ranges() {
-                    if (semver.gte(FC.CONFIG.apiVersion, "1.41.0")) {
+                    if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_41)) {
                         if (configuration.MODE_RANGES_EXTRA == undefined) {
                             FC.MODE_RANGES_EXTRA = [];
 
@@ -824,7 +824,7 @@ function configuration_restore(callback) {
                         uniqueData.push(MSPCodes.MSP_SET_RX_CONFIG);
                         uniqueData.push(MSPCodes.MSP_SET_FAILSAFE_CONFIG);
                     }
-                    if (semver.gte(FC.CONFIG.apiVersion, "1.33.0")) {
+                    if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_33)) {
                         uniqueData.push(MSPCodes.MSP_SET_FEATURE_CONFIG);
                         uniqueData.push(MSPCodes.MSP_SET_MOTOR_CONFIG);
                         uniqueData.push(MSPCodes.MSP_SET_GPS_CONFIG);
@@ -858,10 +858,10 @@ function configuration_restore(callback) {
                     FC.PID_ADVANCED_CONFIG = configuration.PID_ADVANCED_CONFIG;
 
                     FC.BEEPER_CONFIG.beepers = new Beepers(FC.CONFIG);
-                    FC.BEEPER_CONFIG.beepers.setMask(configuration.BEEPER_CONFIG.beepers._beeperMask);
+                    FC.BEEPER_CONFIG.beepers.setDisabledMask(configuration.BEEPER_CONFIG.beepers._beeperDisabledMask);
                     FC.BEEPER_CONFIG.dshotBeaconTone = configuration.BEEPER_CONFIG.dshotBeaconTone;
                     FC.BEEPER_CONFIG.dshotBeaconConditions = new Beepers(FC.CONFIG, [ "RX_LOST", "RX_SET" ]);
-                    FC.BEEPER_CONFIG.dshotBeaconConditions.setMask(configuration.BEEPER_CONFIG.dshotBeaconConditions._beeperMask);
+                    FC.BEEPER_CONFIG.dshotBeaconConditions.setDisabledMask(configuration.BEEPER_CONFIG.dshotBeaconConditions._beeperDisabledMask);
                 }
 
                 function send_unique_data_item() {

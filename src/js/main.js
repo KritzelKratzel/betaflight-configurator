@@ -14,17 +14,6 @@ function appReady() {
         CONFIGURATOR.version = data.version;
         CONFIGURATOR.gitChangesetId = data.gitChangesetId;
 
-        // Version in the ChromeApp's manifest takes precedence.
-        if(chrome.runtime && chrome.runtime.getManifest && !GUI.isCordova()) {
-            const manifest = chrome.runtime.getManifest();
-            CONFIGURATOR.version = manifest.version;
-            // manifest.json for ChromeApp can't have a version
-            // with a prerelease tag eg 10.0.0-RC4
-            // Work around is to specify the prerelease version in version_name
-            if (manifest.version_name) {
-                CONFIGURATOR.version = manifest.version_name;
-            }
-        }
         i18n.init(function() {
             startProcess();
 
@@ -181,10 +170,6 @@ function startProcess() {
             GUI.nwGui.Shell.openExternal(url);
         });
         nwWindow.on('close', closeHandler);
-    } else if (GUI.isChromeApp()) {
-        chrome.app.window.onClosed.addListener(closeHandler);
-        // This event does not actually get fired:
-        chrome.runtime.onSuspend.addListener(closeHandler);
     } else if (GUI.isCordova()) {
         window.addEventListener('beforeunload', closeHandler);
         document.addEventListener('backbutton', function(e) {
@@ -203,9 +188,9 @@ function startProcess() {
     }
 
     $('.connect_b a.connect').removeClass('disabled');
-    $('#logo .version, #tab_logoversion .version').text(CONFIGURATOR.version);
-    updateStatusBarVersion();
-    updateTopBarVersion();
+    // with Vue reactive system we don't need to call these,
+    // our view is reactive to model changes
+    // updateTopBarVersion();
 
     if (!GUI.isOther() && GUI.operating_system !== 'ChromeOS') {
         checkForConfiguratorUpdates();
@@ -595,10 +580,6 @@ function notifyOutdatedVersion(releaseData) {
     });
 }
 
-function update_packet_error(caller) {
-    $('span.packet-error').html(caller.packet_error);
-}
-
 function microtime() {
     return new Date().getTime() / 1000;
 }
@@ -674,13 +655,13 @@ function updateTabList(features) {
         $('#tabs ul.mode-connected li.tab_osd').hide();
     }
 
-    if (semver.gte(FC.CONFIG.apiVersion, "1.36.0")) {
+    if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_36)) {
         $('#tabs ul.mode-connected li.tab_power').show();
     } else {
         $('#tabs ul.mode-connected li.tab_power').hide();
     }
 
-    if (semver.gte(FC.CONFIG.apiVersion, "1.42.0")) {
+    if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_42)) {
         $('#tabs ul.mode-connected li.tab_vtx').show();
     } else {
         $('#tabs ul.mode-connected li.tab_vtx').hide();
@@ -717,62 +698,6 @@ function generateFilename(prefix, suffix) {
     filename = `${filename}_${yyyymmdd}_${hhmmss}`;
 
     return `${filename}.${suffix}`;
-}
-
-function getTargetVersion(hardwareId) {
-    let versionText = '';
-
-    if (hardwareId) {
-       versionText = `${i18n.getMessage('versionLabelTarget')}: ${hardwareId}`;
-    }
-
-    return versionText;
-}
-
-function getFirmwareVersion(firmwareVersion, firmwareId) {
-    let versionText = '';
-
-    if (firmwareVersion) {
-        versionText = `${i18n.getMessage('versionLabelFirmware')}: ${firmwareId} ${firmwareVersion}`;
-    }
-
-    return versionText;
-}
-
-function getConfiguratorVersion() {
-    return `${i18n.getMessage('versionLabelConfigurator')}: ${CONFIGURATOR.version}`;
-}
-
-function updateTopBarVersion(firmwareVersion, firmwareId, hardwareId) {
-
-    const configuratorVersion = getConfiguratorVersion();
-    const firmwareVersionAndId = getFirmwareVersion(firmwareVersion, firmwareId);
-    const targetVersion = getTargetVersion(hardwareId);
-
-    const versionText = `${configuratorVersion}<br />${firmwareVersionAndId}<br />${targetVersion}`;
-
-    $('#logo .logo_text, #tab_logoversion .version').html(versionText);
-}
-
-function updateStatusBarVersion(firmwareVersion, firmwareId, hardwareId) {
-    let versionText = '';
-
-    versionText = versionText + getFirmwareVersion(firmwareVersion, firmwareId);
-
-    if (versionText !== '') {
-        versionText = `${versionText}, `;
-    }
-
-    const targetVersion = getTargetVersion(hardwareId);
-    versionText = versionText + targetVersion;
-
-    if (targetVersion !== '') {
-        versionText = `${versionText}, `;
-    }
-
-    versionText = `${versionText}${getConfiguratorVersion()} (${CONFIGURATOR.gitChangesetId})`;
-
-    $('#status-bar .version').text(versionText);
 }
 
 function showErrorDialog(message) {
