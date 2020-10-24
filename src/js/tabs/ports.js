@@ -15,6 +15,7 @@ TABS.ports.initialize = function (callback, scrollPosition) {
          {name: 'TELEMETRY_FRSKY',      groups: ['telemetry'], sharableWith: ['msp'], notSharableWith: ['peripherals'], maxPorts: 1},
          {name: 'TELEMETRY_HOTT',       groups: ['telemetry'], sharableWith: ['msp'], notSharableWith: ['peripherals'], maxPorts: 1},
          {name: 'TELEMETRY_SMARTPORT',  groups: ['telemetry'], maxPorts: 1},
+         {name: 'TELEMETRY_NANOCAM3D',  groups: ['telemetry'], sharableWith: ['msp'], notSharableWith: ['peripherals'], maxPorts: 1},
          {name: 'RX_SERIAL',            groups: ['rx'], maxPorts: 1},
          {name: 'BLACKBOX',     groups: ['peripherals'], sharableWith: ['msp'], notSharableWith: ['telemetry'], maxPorts: 1}
     ];
@@ -45,10 +46,6 @@ TABS.ports.initialize = function (callback, scrollPosition) {
         functionRules.push({ name: 'TELEMETRY_IBUS', groups: ['telemetry'], maxPorts: 1 });
     }
 
-    if (semver.gte(FC.CONFIG.apiVersion, "1.15.0")) {
-	functionRules.push({ name: 'TELEMETRY_NANOCAM3D', groups: ['telemetry'], maxPorts: 1 });
-    }
-    
     if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_36)) {
         functionRules.push({ name: 'RUNCAM_DEVICE_CONTROL', groups: ['peripherals'], maxPorts: 1 });
     }
