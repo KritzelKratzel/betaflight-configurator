@@ -56,6 +56,8 @@ Unstable testing versions of the lates builds of the configurator for most platf
 
 ## Languages
 
+**Please do not submit pull requests for translation changes, but read and follow the instructions below!**
+
 Betaflight Configurator has been translated into several languages. The application will try to detect and use your system language if a translation into this language is available. You can help [translating the application into your language](https://github.com/betaflight/betaflight/tree/master/README.md#Translators);
 
 If you prefer to have the application in English or any other language, you can select your desired language in the first screen of the application.
@@ -93,13 +95,14 @@ List of possible values of `<task-name>`:
 
 #### Build or release app for one specific platform
 To build or release only for one specific platform you can append the plaform after the `task-name`.
-If no platform is provided, all the platforms will be done in sequence.
+If no platform is provided, the build for the host platform is run.
 
 * **MacOS X** use `yarn gulp <task-name> --osx64`
 * **Linux** use `yarn gulp <task-name> --linux64` 
 * **Windows** use `yarn gulp <task-name> --win32` 
 * **Android** use `yarn gulp <task-name> --android`
 
+**Note:** Support for cross-platform building is very limited due to the requirement for platform specific build tools. If in doubt, build on the target platform.
 
 You can also use multiple platforms e.g. `yarn gulp <taskname> --osx64 --linux64`. Other platforms like `--win64`, `--linux32` and `--armv7` can be used too, but they are not officially supported, so use them at your own risk.
 

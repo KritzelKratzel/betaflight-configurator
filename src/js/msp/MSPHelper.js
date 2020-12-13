@@ -210,7 +210,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     voltageMeter.id = data.readU8();
                     voltageMeter.voltage = data.readU8() / 10.0;
 
-                    FC.VOLTAGE_METERS.push(voltageMeter)
+                    FC.VOLTAGE_METERS.push(voltageMeter);
                 }
                 break;
             case MSPCodes.MSP_CURRENT_METERS:
@@ -278,7 +278,6 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     FC.BF_CONFIG.currentmetertype = data.readU8();
                     FC.BF_CONFIG.batterycapacity = data.readU16();
                 } else {
-                    var offset = 0;
                     FC.CURRENT_METER_CONFIGS = [];
                     var current_meter_count = data.readU8();
                     for (let i = 0; i < current_meter_count; i++) {
@@ -313,6 +312,9 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     FC.BATTERY_CONFIG.vbatmaxcellvoltage = data.readU16() / 100;
                     FC.BATTERY_CONFIG.vbatwarningcellvoltage = data.readU16() / 100;
                 }
+                break;
+            case MSPCodes.MSP_SET_BATTERY_CONFIG:
+                console.log('Battery configuration saved');
                 break;
             case MSPCodes.MSP_RC_TUNING:
                 FC.RC_TUNING.RC_RATE = parseFloat((data.readU8() / 100).toFixed(2));
@@ -606,6 +608,9 @@ MspHelper.prototype.process_data = function(dataHandler) {
             case MSPCodes.MSP_SET_GPS_CONFIG:
                 console.log('GPS Configuration saved');
                 break;
+            case MSPCodes.MSP_SET_GPS_RESCUE:
+                console.log('GPS Rescue Configuration saved');
+                break;
             case MSPCodes.MSP_SET_RSSI_CONFIG:
                 console.log('RSSI Configuration saved');
                 break;
@@ -855,7 +860,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                             gps_baudrate: self.BAUD_RATES[data.readU8()],
                             telemetry_baudrate: self.BAUD_RATES[data.readU8()],
                             blackbox_baudrate: self.BAUD_RATES[data.readU8()]
-                        }
+                        };
 
                         FC.SERIAL_CONFIG.ports.push(serialPort);
                     }
@@ -1574,7 +1579,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                                 code         : command,
                                 dataView     : new DataView(data.buffer, data.offset, payloadSize),
                                 callbacks    : [],
-                        }
+                        };
     
                         self.process_data(currentDataHandler);
 
@@ -1613,13 +1618,16 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 break;
             }
         }
+    } else {
+        console.log(`code: ${code} - crc failed`);
     }
+
     // trigger callbacks, cleanup/remove callback after trigger
-    for (let i = dataHandler.callbacks.length - 1; i >= 0; i--) { // itterating in reverse because we use .splice which modifies array length
-        if (dataHandler.callbacks[i].code == code) {
+    for (let i = dataHandler.callbacks.length - 1; i >= 0; i--) { // iterating in reverse because we use .splice which modifies array length
+        if (dataHandler.callbacks[i]?.code === code) {
             // save callback reference
-            var callback = dataHandler.callbacks[i].callback;
-            var callbackOnError = dataHandler.callbacks[i].callbackOnError;
+            const callback = dataHandler.callbacks[i].callback;
+            const callbackOnError = dataHandler.callbacks[i].callbackOnError;
 
             // remove timeout
             clearInterval(dataHandler.callbacks[i].timer);
@@ -1629,6 +1637,8 @@ MspHelper.prototype.process_data = function(dataHandler) {
             if (!crcError || callbackOnError) {
                 // fire callback
                 if (callback) callback({'command': code, 'data': data, 'length': data.byteLength, 'crcError': crcError});
+            } else {
+                console.log(`code: ${code} - crc failed. No callback`);
             }
         }
     }
@@ -1657,7 +1667,7 @@ MspHelper.prototype.crunch = function(code) {
             }
             break;
         case MSPCodes.MSP_SET_MIXER_CONFIG:
-            buffer.push8(FC.MIXER_CONFIG.mixer)
+            buffer.push8(FC.MIXER_CONFIG.mixer);
             if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_36)) {
                 buffer.push8(FC.MIXER_CONFIG.reverseMotorDir);
             }
@@ -1825,7 +1835,7 @@ MspHelper.prototype.crunch = function(code) {
                 buffer.push16(FC.BF_CONFIG.currentscale)
                     .push16(FC.BF_CONFIG.currentoffset)
                     .push8(FC.BF_CONFIG.currentmetertype)
-                    .push16(FC.BF_CONFIG.batterycapacity)
+                    .push16(FC.BF_CONFIG.batterycapacity);
             }
             break;
 
@@ -2002,7 +2012,7 @@ MspHelper.prototype.crunch = function(code) {
                     .push16(FC.FILTER_CONFIG.dterm_notch_cutoff);
                 if (semver.gte(FC.CONFIG.apiVersion, "1.21.0")) {
                     buffer.push16(FC.FILTER_CONFIG.gyro_notch2_hz)
-                        .push16(FC.FILTER_CONFIG.gyro_notch2_cutoff)
+                        .push16(FC.FILTER_CONFIG.gyro_notch2_cutoff);
                 }
                 if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_36)) {
                     buffer.push8(FC.FILTER_CONFIG.dterm_lowpass_type);
@@ -2232,7 +2242,7 @@ MspHelper.prototype.crunch = function(code) {
             }
 
             if (FC.VTXTABLE_BAND.vtxtable_band_letter != '') {
-                buffer.push8(FC.VTXTABLE_BAND.vtxtable_band_letter.charCodeAt(0))
+                buffer.push8(FC.VTXTABLE_BAND.vtxtable_band_letter.charCodeAt(0));
             } else {
                 buffer.push8(' '.charCodeAt(0));
             }

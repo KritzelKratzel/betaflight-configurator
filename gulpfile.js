@@ -52,7 +52,7 @@ let gitChangeSetId;
 
 const nwBuilderOptions = {
     version: '0.47.0',
-    files: './dist/**/*',
+    files: `${DIST_DIR}**/*`,
     macIcns: './src/images/bf_icon.icns',
     macPlist: { 'CFBundleDisplayName': 'Betaflight Configurator'},
     winIco: './src/images/bf_icon.ico',
@@ -123,7 +123,7 @@ function getInputPlatforms() {
     const supportedPlatforms = ['linux64', 'linux32', 'armv7', 'osx64', 'win32', 'win64', 'android'];
     const platforms = [];
     const regEx = /--(\w+)/;
-    console.log(process.argv);
+
     for (let i = 3; i < process.argv.length; i++) {
         const arg = process.argv[i].match(regEx)[1];
         if (supportedPlatforms.indexOf(arg) > -1) {
@@ -269,7 +269,7 @@ function dist_src() {
     return packageJson
         .pipe(source('package.json'))
         .pipe(gulp.src(distSources, { base: 'src' }))
-        .pipe(gulp.src('yarn.lock', { passthrougth: true }))
+        .pipe(gulp.src('yarn.lock'))
         .pipe(gulp.dest(DIST_DIR));
 }
 
@@ -280,8 +280,8 @@ function dist_changelog() {
 
 // This function relies on files from the dist_src function
 function dist_yarn() {
-    return gulp.src(['./dist/package.json', './dist/yarn.lock'])
-        .pipe(gulp.dest('./dist'))
+    return gulp.src([`${DIST_DIR}package.json`, `${DIST_DIR}yarn.lock`])
+        .pipe(gulp.dest(DIST_DIR))
         .pipe(yarn({
             production: true,
         }));
@@ -566,14 +566,13 @@ function start_debug(done) {
 
     const platforms = getPlatforms();
 
-    const exec = require('child_process').exec;
     if (platforms.length === 1) {
         if (platforms[0] === 'android') {
             cordova_debug();
         } else {
             const run = getRunDebugAppCommand(platforms[0]);
             console.log(`Starting debug app (${run})...`);
-            exec(run);
+            child_process.exec(run);
         }
     } else {
         console.log('More than one platform specified, not starting debug app');
