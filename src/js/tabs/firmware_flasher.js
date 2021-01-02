@@ -870,9 +870,7 @@ TABS.firmware_flasher.initialize = function (callback) {
                     }
                 ]
             }, function (fileEntry) {
-                if (chrome.runtime.lastError) {
-                    console.error(chrome.runtime.lastError.message);
-
+                if (checkChromeRuntimeError()) {
                     return;
                 }
 
@@ -1021,10 +1019,14 @@ TABS.firmware_flasher.initialize = function (callback) {
         });
 
         portPickerElement.change(function () {
-            if ($('option:selected', this).data().isDFU && !GUI.connect_lock) {
-                exitDfuElement.removeClass('disabled');
-            } else {
-                exitDfuElement.addClass('disabled');
+            if (!GUI.connect_lock) {
+                if ($('option:selected', this).data().isDFU) {
+                    exitDfuElement.removeClass('disabled');
+                } else {
+                    $("a.load_remote_file").removeClass('disabled');
+                    $("a.load_file").removeClass('disabled');
+                    exitDfuElement.addClass('disabled');
+                }
             }
         }).change();
 
@@ -1127,8 +1129,7 @@ TABS.firmware_flasher.initialize = function (callback) {
         $('span.progressLabel a.save_firmware').click(function () {
             var summary = $('select[name="firmware_version"] option:selected').data('summary');
             chrome.fileSystem.chooseEntry({type: 'saveFile', suggestedName: summary.file, accepts: [{description: 'HEX files', extensions: ['hex']}]}, function (fileEntry) {
-                if (chrome.runtime.lastError) {
-                    console.error(chrome.runtime.lastError.message);
+                if (checkChromeRuntimeError()) {
                     return;
                 }
 

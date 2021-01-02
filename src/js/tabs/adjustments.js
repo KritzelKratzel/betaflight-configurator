@@ -3,19 +3,19 @@
 TABS.adjustments = {};
 
 TABS.adjustments.initialize = function (callback) {
-    var self = this;
+    const self = this;
     GUI.active_tab_ref = this;
     GUI.active_tab = 'adjustments';
-    
+
     function get_adjustment_ranges() {
         MSP.send_message(MSPCodes.MSP_ADJUSTMENT_RANGES, false, false, get_box_ids);
     }
 
     function get_box_ids() {
-        MSP.send_message(MSPCodes.MSP_BOXIDS, false, false, get_rc_data);
+        MSP.send_message(MSPCodes.MSP_BOXIDS, false, false, getRcData);
     }
 
-    function get_rc_data() {
+    function getRcData() {
         MSP.send_message(MSPCodes.MSP_RC, false, false, load_html);
     }
 
@@ -27,30 +27,30 @@ TABS.adjustments.initialize = function (callback) {
 
     function addAdjustment(adjustmentIndex, adjustmentRange, auxChannelCount) {
 
-        var template = $('#tab-adjustments-templates .adjustments .adjustment');
-        var newAdjustment = template.clone();
-        
+        const template = $('#tab-adjustments-templates .adjustments .adjustment');
+        const newAdjustment = template.clone();
+
         $(newAdjustment).attr('id', 'adjustment-' + adjustmentIndex);
         $(newAdjustment).data('index', adjustmentIndex);
 
         //
         // update selected slot
         //
-        
+
         if (semver.lt(FC.CONFIG.apiVersion, API_VERSION_1_42)) {
-            var adjustmentList = $(newAdjustment).find('.adjustmentSlot .slot');
+            const adjustmentList = $(newAdjustment).find('.adjustmentSlot .slot');
             adjustmentList.val(adjustmentRange.slotIndex);
         }
 
         //
         // populate source channel select box
         //
-        
-        var channelList = $(newAdjustment).find('.channelInfo .channel');
-        var channelOptionTemplate = $(channelList).find('option');
+
+        const channelList = $(newAdjustment).find('.channelInfo .channel');
+        const channelOptionTemplate = $(channelList).find('option');
         channelOptionTemplate.remove();
-        for (var channelIndex = 0; channelIndex < auxChannelCount; channelIndex++) {
-            var channelOption = channelOptionTemplate.clone();
+        for (let channelIndex = 0; channelIndex < auxChannelCount; channelIndex++) {
+            const channelOption = channelOptionTemplate.clone();
             channelOption.text('AUX ' + (channelIndex + 1));
             channelOption.val(channelIndex);
             channelList.append(channelOption);
@@ -61,7 +61,7 @@ TABS.adjustments.initialize = function (callback) {
         // update selected function
         //
 
-        var functionList = $(newAdjustment).find('.functionSelection .function');
+        const functionList = $(newAdjustment).find('.functionSelection .function');
         // update list of selected functions
 
         functionList.val(adjustmentRange.adjustmentFunction);
@@ -70,11 +70,11 @@ TABS.adjustments.initialize = function (callback) {
         // populate function channel select box
         //
 
-        var switchList = $(newAdjustment).find('.functionSwitchChannel .channel');
-        var switchOptionTemplate = $(switchList).find('option');
+        const switchList = $(newAdjustment).find('.functionSwitchChannel .channel');
+        const switchOptionTemplate = $(switchList).find('option');
         switchOptionTemplate.remove();
-        var switchOption;
-        for (var switchIndex = 0; switchIndex < auxChannelCount; switchIndex++) {
+        let switchOption;
+        for (let switchIndex = 0; switchIndex < auxChannelCount; switchIndex++) {
             switchOption = switchOptionTemplate.clone();
             switchOption.text('AUX ' + (switchIndex + 1));
             switchOption.val(switchIndex);
@@ -85,18 +85,18 @@ TABS.adjustments.initialize = function (callback) {
         //
         // configure range
         //
-        
-        var channel_range = {
+
+        const channel_range = {
                 'min': [  900 ],
                 'max': [ 2100 ]
             };
 
-        var rangeValues = [1300, 1700];
+        let rangeValues = [1300, 1700];
         if (adjustmentRange.range != undefined) {
             rangeValues = [adjustmentRange.range.start, adjustmentRange.range.end];
         }
 
-        var rangeElement = $(newAdjustment).find('.range');
+        let rangeElement = $(newAdjustment).find('.range');
 
         $(rangeElement).find('.channel-slider').noUiSlider({
             start: rangeValues,
@@ -119,22 +119,22 @@ TABS.adjustments.initialize = function (callback) {
             density: 4,
             stepped: true
         });
-        
+
         //
         // add the enable/disable behavior
         //
-        
-        var enableElement = $(newAdjustment).find('.enable');
+
+        const enableElement = $(newAdjustment).find('.enable');
         $(enableElement).data('adjustmentElement', newAdjustment);
         $(enableElement).change(function() {
-            var adjustmentElement = $(this).data('adjustmentElement');
-            if ($(this).prop("checked")) { 
+            const adjustmentElement = $(this).data('adjustmentElement');
+            if ($(this).prop("checked")) {
                 $(adjustmentElement).find(':input').prop("disabled", false);
                 $(adjustmentElement).find('.channel-slider').removeAttr("disabled");
-                var rangeElement = $(adjustmentElement).find('.range .channel-slider');
-                var range = $(rangeElement).val();
+                rangeElement = $(adjustmentElement).find('.range .channel-slider');
+                const range = $(rangeElement).val();
                 if (range[0] == range[1]) {
-                    var defaultRangeValues = [1300, 1700];
+                    const defaultRangeValues = [1300, 1700];
                     $(rangeElement).val(defaultRangeValues);
                 }
             } else {
@@ -145,10 +145,10 @@ TABS.adjustments.initialize = function (callback) {
             // keep this element enabled
             $(this).prop("disabled", false);
         });
-        
-        var isEnabled = (adjustmentRange.range.start != adjustmentRange.range.end); 
+
+        const isEnabled = (adjustmentRange?.range?.start !== adjustmentRange?.range?.end);
         $(enableElement).prop("checked", isEnabled).change();
-        
+
         return newAdjustment;
     }
 
@@ -156,14 +156,14 @@ TABS.adjustments.initialize = function (callback) {
 
         self.adjust_template();
 
-        var auxChannelCount = FC.RC.active_channels - 4;
+        let auxChannelCount = FC.RC.active_channels - 4;
 
-        var modeTableBodyElement = $('.tab-adjustments .adjustments tbody');
-        for (var adjustmentIndex = 0; adjustmentIndex < FC.ADJUSTMENT_RANGES.length; adjustmentIndex++) {
-            var newAdjustment = addAdjustment(adjustmentIndex, FC.ADJUSTMENT_RANGES[adjustmentIndex], auxChannelCount);
+        const modeTableBodyElement = $('.tab-adjustments .adjustments tbody');
+        for (let adjustmentIndex = 0; adjustmentIndex < FC.ADJUSTMENT_RANGES.length; adjustmentIndex++) {
+            const newAdjustment = addAdjustment(adjustmentIndex, FC.ADJUSTMENT_RANGES[adjustmentIndex], auxChannelCount);
             modeTableBodyElement.append(newAdjustment);
         }
-        
+
 
         if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_42)) {
             $('.tab-adjustments .adjustmentSlotsHelp').hide();
@@ -178,11 +178,11 @@ TABS.adjustments.initialize = function (callback) {
         $('a.save').click(function () {
 
             // update internal data structures based on current UI elements
-            var requiredAdjustmentRangeCount = FC.ADJUSTMENT_RANGES.length;
-            
+            const requiredAdjustmentRangeCount = FC.ADJUSTMENT_RANGES.length;
+
             FC.ADJUSTMENT_RANGES = [];
-            
-            var defaultAdjustmentRange = {
+
+            const defaultAdjustmentRange = {
                 slotIndex: 0,
                 auxChannelIndex: 0,
                 range: {
@@ -194,16 +194,16 @@ TABS.adjustments.initialize = function (callback) {
             };
 
             $('.tab-adjustments .adjustments .adjustment').each(function () {
-                var adjustmentElement = $(this);
-                
+                const adjustmentElement = $(this);
+
                 if ($(adjustmentElement).find('.enable').prop("checked")) {
-                    var rangeValues = $(this).find('.range .channel-slider').val();
-                    var slotIndex = 0;
+                    const rangeValues = $(this).find('.range .channel-slider').val();
+                    let slotIndex = 0;
                     if (semver.lt(FC.CONFIG.apiVersion, API_VERSION_1_42)) {
                         slotIndex = parseInt($(this).find('.adjustmentSlot .slot').val());
                     }
 
-                    var adjustmentRange = {
+                    const adjustmentRange = {
                         slotIndex: slotIndex,
                         auxChannelIndex: parseInt($(this).find('.channelInfo .channel').val()),
                         range: {
@@ -218,16 +218,16 @@ TABS.adjustments.initialize = function (callback) {
                     FC.ADJUSTMENT_RANGES.push(defaultAdjustmentRange);
                 }
             });
-            
-            for (var adjustmentRangeIndex = FC.ADJUSTMENT_RANGES.length; adjustmentRangeIndex < requiredAdjustmentRangeCount; adjustmentRangeIndex++) {
+
+            for (let adjustmentRangeIndex = FC.ADJUSTMENT_RANGES.length; adjustmentRangeIndex < requiredAdjustmentRangeCount; adjustmentRangeIndex++) {
                 FC.ADJUSTMENT_RANGES.push(defaultAdjustmentRange);
             }
-            
+
             //
             // send data to FC
             //
             mspHelper.sendAdjustmentRanges(save_to_eeprom);
-            
+
             function save_to_eeprom() {
                 MSP.send_message(MSPCodes.MSP_EEPROM_WRITE, false, false, function () {
                     GUI.log(i18n.getMessage('adjustmentsEepromSaved'));
@@ -242,14 +242,14 @@ TABS.adjustments.initialize = function (callback) {
             } else if (channelPosition > 2100) {
                 channelPosition = 2100;
             }
-            var percentage = (channelPosition - 900) / (2100-900) * 100;
-            
+            const percentage = (channelPosition - 900) / (2100-900) * 100;
+
             $('.adjustments .adjustment').each( function () {
-                var auxChannelCandidateIndex = $(this).find('.channel').val();
+                const auxChannelCandidateIndex = $(this).find('.channel').val();
                 if (auxChannelCandidateIndex != auxChannelIndex) {
                     return;
                 }
-                
+
                 $(this).find('.range .marker').css('left', percentage + '%');
             });
         }
@@ -260,11 +260,11 @@ TABS.adjustments.initialize = function (callback) {
         }
 
         function update_ui() {
-            var auxChannelCount = FC.RC.active_channels - 4;
+            auxChannelCount = FC.RC.active_channels - 4;
 
-            for (var auxChannelIndex = 0; auxChannelIndex < auxChannelCount; auxChannelIndex++) {
+            for (let auxChannelIndex = 0; auxChannelIndex < auxChannelCount; auxChannelIndex++) {
                 update_marker(auxChannelIndex, FC.RC.channels[auxChannelIndex + 4]);
-            }           
+            }
         }
 
         // update ui instantly on first load
@@ -288,8 +288,8 @@ TABS.adjustments.cleanup = function (callback) {
 
 TABS.adjustments.adjust_template = function () {
 
-    var selectFunction = $('#functionSelectionSelect');
-    var elementsNumber;
+    const selectFunction = $('#functionSelectionSelect');
+    let elementsNumber;
 
     if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_41)) {
         elementsNumber = 31; // OSD Profile Select & LED Profile Select
@@ -306,12 +306,12 @@ TABS.adjustments.adjust_template = function () {
     for (let i = 0; i < elementsNumber; i++) {
         selectFunction.append(new Option(i18n.getMessage('adjustmentsFunction' + i), i));
     }
-    
+
     // For 1.40, the D Setpoint has been replaced, so we replace it with the correct values
     if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_40)) {
 
-        var element22 = selectFunction.find("option[value='22']");
-        var element23 = selectFunction.find("option[value='23']");
+        const element22 = selectFunction.find("option[value='22']");
+        const element23 = selectFunction.find("option[value='23']");
 
         // Change the "text"
         element22.text(i18n.getMessage('adjustmentsFunction22_2'));

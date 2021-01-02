@@ -1,16 +1,22 @@
 'use strict';
-var mspHelper;
 
-var connectionTimestamp;
+let mspHelper;
+let connectionTimestamp;
 
 function initializeSerialBackend() {
     GUI.updateManualPortVisibility = function(){
-        var selected_port = $('div#port-picker #port option:selected');
+        const selected_port = $('div#port-picker #port option:selected');
         if (selected_port.data().isManual) {
             $('#port-override-option').show();
         }
         else {
             $('#port-override-option').hide();
+        }
+        if (selected_port.data().isVirtual) {
+            $('#firmware-virtual-option').show();
+        }
+        else {
+            $('#firmware-virtual-option').hide();
         }
         if (selected_port.data().isDFU) {
             $('select#baud').hide();
@@ -37,16 +43,16 @@ function initializeSerialBackend() {
     $('div.connect_controls a.connect').click(function () {
         if (GUI.connect_lock != true) { // GUI control overrides the user control
 
-            var thisElement = $(this);
-            var clicks = thisElement.data('clicks');
+            const thisElement = $(this);
+            const clicks = thisElement.data('clicks');
 
-            var toggleStatus = function() {
+            const toggleStatus = function() {
                 thisElement.data("clicks", !clicks);
             };
 
             GUI.configuration_loaded = false;
 
-            var selected_baud = parseInt($('div#port-picker #baud').val());
+            const selected_baud = parseInt($('div#port-picker #baud').val());
             const selectedPort = $('div#port-picker #port option:selected');
 
             let portName;
@@ -60,14 +66,21 @@ function initializeSerialBackend() {
                 $('select#baud').hide();
             } else if (portName !== '0') {
                 if (!clicks) {
-                    console.log(`Connecting to: ${portName}`);
+                    console.log(`${serial.connectionType}: connecting to: ${portName}`);
                     GUI.connecting_to = portName;
 
                     // lock port select & baud while we are connecting / connected
                     $('div#port-picker #port, div#port-picker #baud, div#port-picker #delay').prop('disabled', true);
                     $('div.connect_controls div.connect_state').text(i18n.getMessage('connecting'));
 
-                    serial.connect(portName, {bitrate: selected_baud}, onOpen);
+                    if (selectedPort.data().isVirtual) {
+                        CONFIGURATOR.virtualMode = true;
+                        CONFIGURATOR.virtualApiVersion = $('#firmware-version-dropdown :selected').val();
+
+                        serial.connect('virtual', {}, onOpenVirtual);
+                    } else {
+                        serial.connect(portName, {bitrate: selected_baud}, onOpen);
+                    }
 
                     toggleStatus();
                 } else {
@@ -148,14 +161,12 @@ function finishClose(finishedCallback) {
         UI_PHONES.reset();
     }
 
-    var wasConnected = CONFIGURATOR.connectionValid;
+    const wasConnected = CONFIGURATOR.connectionValid;
 
     analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'Disconnected');
     if (connectionTimestamp) {
-        var connectedTime = Date.now() - connectionTimestamp;
+        const connectedTime = Date.now() - connectionTimestamp;
         analytics.sendTiming(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'Connected', connectedTime);
-
-        connectedTime = undefined;
     }
     // close reset to custom defaults dialog
     $('#dialogResetToCustomDefaults')[0].close();
@@ -208,6 +219,8 @@ function setConnectionTimeout() {
 
 function onOpen(openInfo) {
     if (openInfo) {
+        CONFIGURATOR.virtualMode = false;
+
         // update connected_to
         GUI.connected_to = GUI.connecting_to;
 
@@ -229,14 +242,12 @@ function onOpen(openInfo) {
         });
 
         serial.onReceive.addListener(read_serial);
-
         setConnectionTimeout();
-
         FC.resetState();
         mspHelper = new MspHelper();
         MSP.listen(mspHelper.process_data.bind(mspHelper));
         console.log(`Requesting configuration data`);
-        // request configuration data
+
         MSP.send_message(MSPCodes.MSP_API_VERSION, false, false, function () {
             analytics.setFlightControllerData(analytics.DATA.API_VERSION, FC.CONFIG.apiVersion);
 
@@ -262,7 +273,7 @@ function onOpen(openInfo) {
                     } else {
                         analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'ConnectionRefusedFirmwareType', FC.CONFIG.flightControllerIdentifier);
 
-                        var dialog = $('.dialogConnectWarning')[0];
+                        const dialog = $('.dialogConnectWarning')[0];
 
                         $('.dialogConnectWarning-content').html(i18n.getMessage('firmwareTypeNotSupported'));
 
@@ -278,7 +289,7 @@ function onOpen(openInfo) {
             } else {
                 analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'ConnectionRefusedFirmwareVersion', FC.CONFIG.apiVersion);
 
-                var dialog = $('.dialogConnectWarning')[0];
+                const dialog = $('.dialogConnectWarning')[0];
 
                 $('.dialogConnectWarning-content').html(i18n.getMessage('firmwareVersionNotSupported', [CONFIGURATOR.API_VERSION_ACCEPTED]));
 
@@ -299,6 +310,23 @@ function onOpen(openInfo) {
 
         abortConnect();
     }
+}
+
+function onOpenVirtual() {
+    GUI.connected_to = GUI.connecting_to;
+    GUI.connecting_to = false;
+
+    CONFIGURATOR.connectionValid = true;
+
+    mspHelper = new MspHelper();
+
+    VirtualFC.setVirtualConfig();
+
+    processBoardInfo();
+
+    update_dataflash_global();
+    sensor_status(FC.CONFIG.activeSensors);
+    updateTabList(FC.FEATURE_CONFIG.features);
 }
 
 function abortConnect() {
@@ -322,12 +350,12 @@ function processBoardInfo() {
     GUI.log(i18n.getMessage('boardInfoReceived', [FC.getHardwareName(), FC.CONFIG.boardVersion]));
 
     if (bit_check(FC.CONFIG.targetCapabilities, FC.TARGET_CAPABILITIES_FLAGS.SUPPORTS_CUSTOM_DEFAULTS) && bit_check(FC.CONFIG.targetCapabilities, FC.TARGET_CAPABILITIES_FLAGS.HAS_CUSTOM_DEFAULTS) && FC.CONFIG.configurationState === FC.CONFIGURATION_STATES.DEFAULTS_BARE) {
-        var dialog = $('#dialogResetToCustomDefaults')[0];
+        const dialog = $('#dialogResetToCustomDefaults')[0];
 
         $('#dialogResetToCustomDefaults-acceptbtn').click(function() {
             analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'AcceptResetToCustomDefaults');
 
-            var buffer = [];
+            const buffer = [];
             buffer.push(mspHelper.RESET_TYPES.CUSTOM_DEFAULTS);
             MSP.send_message(MSPCodes.MSP_RESET_CONF, buffer, false);
 
@@ -409,7 +437,7 @@ function checkReportProblems() {
 
 function processUid() {
     MSP.send_message(MSPCodes.MSP_UID, false, false, function () {
-        var uniqueDeviceIdentifier = FC.CONFIG.uid[0].toString(16) + FC.CONFIG.uid[1].toString(16) + FC.CONFIG.uid[2].toString(16);
+        const uniqueDeviceIdentifier = FC.CONFIG.uid[0].toString(16) + FC.CONFIG.uid[1].toString(16) + FC.CONFIG.uid[2].toString(16);
 
         analytics.setFlightControllerData(analytics.DATA.MCU_ID, objectHash.sha1(uniqueDeviceIdentifier));
         analytics.sendEvent(analytics.EVENT_CATEGORIES.FLIGHT_CONTROLLER, 'Connected');
@@ -480,14 +508,14 @@ function onConnect() {
     // show only appropriate tabs
     $('#tabs ul.mode-connected li').hide();
     $('#tabs ul.mode-connected li').filter(function (index) {
-        var classes = $(this).attr("class").split(/\s+/);
-        var found = false;
-        $.each(GUI.allowedTabs, function (index, value) {
-            var tabName = "tab_" + value;
-            if ($.inArray(tabName, classes) >= 0) {
-                found = true;
-            }
-        });
+        const classes = $(this).attr("class").split(/\s+/);
+        let found = false;
+        $.each(GUI.allowedTabs, (_index, value) => {
+                const tabName = `tab_${value}`;
+                if ($.inArray(tabName, classes) >= 0) {
+                    found = true;
+                }
+            });
 
         if (FC.CONFIG.boardType == 0) {
             if (classes.indexOf("osd-required") >= 0) {
@@ -517,13 +545,13 @@ function onConnect() {
         }
     }
 
-    var sensor_state = $('#sensor-status');
-    sensor_state.show();
+    const sensorState = $('#sensor-status');
+    sensorState.show();
 
-    var port_picker = $('#portsinput');
-    port_picker.hide();
+    const portPicker = $('#portsinput');
+    portPicker.hide();
 
-    var dataflash = $('#dataflash_wrapper_global');
+    const dataflash = $('#dataflash_wrapper_global');
     dataflash.show();
 }
 
@@ -538,16 +566,16 @@ function onClosed(result) {
     $('#tabs ul.mode-connected-cli').hide();
     $('#tabs ul.mode-disconnected').show();
 
-    var sensor_state = $('#sensor-status');
-    sensor_state.hide();
+    const sensorState = $('#sensor-status');
+    sensorState.hide();
 
-    var port_picker = $('#portsinput');
-    port_picker.show();
+    const portPicker = $('#portsinput');
+    portPicker.show();
 
-    var dataflash = $('#dataflash_wrapper_global');
+    const dataflash = $('#dataflash_wrapper_global');
     dataflash.hide();
 
-    var battery = $('#quad-status_wrapper');
+    const battery = $('#quad-status_wrapper');
     battery.hide();
 
     MSP.clearListeners();
@@ -579,55 +607,55 @@ function sensor_status(sensors_detected) {
     // set current value
     sensor_status.previous_sensors_detected = sensors_detected;
 
-    var e_sensor_status = $('div#sensor-status');
+    const eSensorStatus = $('div#sensor-status');
 
     if (have_sensor(sensors_detected, 'acc')) {
-        $('.accel', e_sensor_status).addClass('on');
-        $('.accicon', e_sensor_status).addClass('active');
+        $('.accel', eSensorStatus).addClass('on');
+        $('.accicon', eSensorStatus).addClass('active');
 
     } else {
-        $('.accel', e_sensor_status).removeClass('on');
-        $('.accicon', e_sensor_status).removeClass('active');
+        $('.accel', eSensorStatus).removeClass('on');
+        $('.accicon', eSensorStatus).removeClass('active');
     }
 
     if ((FC.CONFIG.boardType == 0 || FC.CONFIG.boardType == 2) && have_sensor(sensors_detected, 'gyro')) {
-        $('.gyro', e_sensor_status).addClass('on');
-        $('.gyroicon', e_sensor_status).addClass('active');
+        $('.gyro', eSensorStatus).addClass('on');
+        $('.gyroicon', eSensorStatus).addClass('active');
     } else {
-        $('.gyro', e_sensor_status).removeClass('on');
-        $('.gyroicon', e_sensor_status).removeClass('active');
+        $('.gyro', eSensorStatus).removeClass('on');
+        $('.gyroicon', eSensorStatus).removeClass('active');
     }
 
     if (have_sensor(sensors_detected, 'baro')) {
-        $('.baro', e_sensor_status).addClass('on');
-        $('.baroicon', e_sensor_status).addClass('active');
+        $('.baro', eSensorStatus).addClass('on');
+        $('.baroicon', eSensorStatus).addClass('active');
     } else {
-        $('.baro', e_sensor_status).removeClass('on');
-        $('.baroicon', e_sensor_status).removeClass('active');
+        $('.baro', eSensorStatus).removeClass('on');
+        $('.baroicon', eSensorStatus).removeClass('active');
     }
 
     if (have_sensor(sensors_detected, 'mag')) {
-        $('.mag', e_sensor_status).addClass('on');
-        $('.magicon', e_sensor_status).addClass('active');
+        $('.mag', eSensorStatus).addClass('on');
+        $('.magicon', eSensorStatus).addClass('active');
     } else {
-        $('.mag', e_sensor_status).removeClass('on');
-        $('.magicon', e_sensor_status).removeClass('active');
+        $('.mag', eSensorStatus).removeClass('on');
+        $('.magicon', eSensorStatus).removeClass('active');
     }
 
     if (have_sensor(sensors_detected, 'gps')) {
-        $('.gps', e_sensor_status).addClass('on');
-    $('.gpsicon', e_sensor_status).addClass('active');
+        $('.gps', eSensorStatus).addClass('on');
+    $('.gpsicon', eSensorStatus).addClass('active');
     } else {
-        $('.gps', e_sensor_status).removeClass('on');
-        $('.gpsicon', e_sensor_status).removeClass('active');
+        $('.gps', eSensorStatus).removeClass('on');
+        $('.gpsicon', eSensorStatus).removeClass('active');
     }
 
     if (have_sensor(sensors_detected, 'sonar')) {
-        $('.sonar', e_sensor_status).addClass('on');
-        $('.sonaricon', e_sensor_status).addClass('active');
+        $('.sonar', eSensorStatus).addClass('on');
+        $('.sonaricon', eSensorStatus).addClass('active');
     } else {
-        $('.sonar', e_sensor_status).removeClass('on');
-        $('.sonaricon', e_sensor_status).removeClass('active');
+        $('.sonar', eSensorStatus).removeClass('on');
+        $('.sonaricon', eSensorStatus).removeClass('active');
     }
 }
 
@@ -660,7 +688,7 @@ function startLiveDataRefreshTimer() {
 
 function update_live_status() {
 
-    var statuswrapper = $('#quad-status_wrapper');
+    const statuswrapper = $('#quad-status_wrapper');
 
     $(".quad-status-contents").css({
        display: 'inline-block'
@@ -676,35 +704,37 @@ function update_live_status() {
         MSP.send_message(MSPCodes.MSP_ANALOG, false, false);
     }
 
-    var active = ((Date.now() - FC.ANALOG.last_received_timestamp) < 300);
+    const active = ((Date.now() - FC.ANALOG.last_received_timestamp) < 300);
 
-    for (var i = 0; i < FC.AUX_CONFIG.length; i++) {
-       if (FC.AUX_CONFIG[i] == 'ARM') {
-               if (bit_check(FC.CONFIG.mode, i))
-                       $(".armedicon").addClass('active');
-               else
-                       $(".armedicon").removeClass('active');
-       }
-       if (FC.AUX_CONFIG[i] == 'FAILSAFE') {
-               if (bit_check(FC.CONFIG.mode, i))
-                       $(".failsafeicon").addClass('active');
-               else
-                       $(".failsafeicon").removeClass('active');
-       }
+    for (let i = 0; i < FC.AUX_CONFIG.length; i++) {
+        if (FC.AUX_CONFIG[i] === 'ARM') {
+            if (bit_check(FC.CONFIG.mode, i)) {
+                $(".armedicon").addClass('active');
+            } else {
+                $(".armedicon").removeClass('active');
+            }
+        }
+        if (FC.AUX_CONFIG[i] === 'FAILSAFE') {
+            if (bit_check(FC.CONFIG.mode, i)) {
+                $(".failsafeicon").addClass('active');
+            } else {
+                $(".failsafeicon").removeClass('active');
+            }
+        }
     }
 
     if (FC.ANALOG != undefined) {
-        var nbCells = Math.floor(FC.ANALOG.voltage / FC.BATTERY_CONFIG.vbatmaxcellvoltage) + 1;
+        let nbCells = Math.floor(FC.ANALOG.voltage / FC.BATTERY_CONFIG.vbatmaxcellvoltage) + 1;
 
         if (FC.ANALOG.voltage == 0) {
                nbCells = 1;
         }
 
-       var min = FC.BATTERY_CONFIG.vbatmincellvoltage * nbCells;
-       var max = FC.BATTERY_CONFIG.vbatmaxcellvoltage * nbCells;
-       var warn = FC.BATTERY_CONFIG.vbatwarningcellvoltage * nbCells;
+       const min = FC.BATTERY_CONFIG.vbatmincellvoltage * nbCells;
+       const max = FC.BATTERY_CONFIG.vbatmaxcellvoltage * nbCells;
+       const warn = FC.BATTERY_CONFIG.vbatwarningcellvoltage * nbCells;
 
-       const NO_BATTERY_VOLTAGE_MAXIMUM = 1.8; // Maybe is better to add a call to MSP_BATTERY_STATE but is not available for all versions  
+       const NO_BATTERY_VOLTAGE_MAXIMUM = 1.8; // Maybe is better to add a call to MSP_BATTERY_STATE but is not available for all versions
 
        if (FC.ANALOG.voltage < min && FC.ANALOG.voltage > NO_BATTERY_VOLTAGE_MAXIMUM) {
            $(".battery-status").addClass('state-empty').removeClass('state-ok').removeClass('state-warning');
@@ -713,7 +743,7 @@ function update_live_status() {
            });
        } else {
            $(".battery-status").css({
-               width: ((FC.ANALOG.voltage - min) / (max - min) * 100) + "%",
+               width: `${((FC.ANALOG.voltage - min) / (max - min) * 100)}%`,
            });
 
            if (FC.ANALOG.voltage < warn) {
@@ -757,18 +787,18 @@ function update_dataflash_global() {
         if (bytes < 1024) {
             return bytes + "B";
         }
-        var kilobytes = bytes / 1024;
+        const kilobytes = bytes / 1024;
 
         if (kilobytes < 1024) {
             return Math.round(kilobytes) + "kB";
         }
 
-        var megabytes = kilobytes / 1024;
+        const megabytes = kilobytes / 1024;
 
         return megabytes.toFixed(1) + "MB";
     }
 
-    var supportsDataflash = FC.DATAFLASH.totalSize > 0;
+    const supportsDataflash = FC.DATAFLASH.totalSize > 0;
 
     if (supportsDataflash){
         $(".noflash_global").css({

@@ -1,7 +1,7 @@
 'use strict';
 
 //MSPCodes needs to be re-integrated inside MSP object
-var MSPCodes = {
+const MSPCodes = {
     MSP_API_VERSION:                1,
     MSP_FC_VARIANT:                 2,
     MSP_FC_VERSION:                 3,
@@ -92,7 +92,7 @@ var MSPCodes = {
     MSP_ANALOG:                     110,
     MSP_RC_TUNING:                  111,
     MSP_PID:                        112,
-    //MSP_BOX:                        113, // DEPRECATED 
+    //MSP_BOX:                        113, // DEPRECATED
     MSP_MISC:                       114, // DEPRECATED
     MSP_BOXNAMES:                   116,
     MSP_PIDNAMES:                   117,
@@ -181,4 +181,5 @@ var MSPCodes = {
     MSP2_BETAFLIGHT_BIND:           0x3000,
     MSP2_MOTOR_OUTPUT_REORDERING:   0x3001,
     MSP2_SET_MOTOR_OUTPUT_REORDERING:    0x3002,
+    MSP2_SEND_DSHOT_COMMAND:        0x3003,
 };

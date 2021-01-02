@@ -98,7 +98,7 @@ function closeSerial() {
     // automatically close the port when application closes
     const connectionId = serial.connectionId;
 
-    if (connectionId && CONFIGURATOR.connectionValid) {
+    if (connectionId && CONFIGURATOR.connectionValid && !CONFIGURATOR.virtualMode) {
         // code below is handmade MSP message (without pretty JS wrapper), it behaves exactly like MSP.send_message
         // sending exit command just in case the cli tab was open.
         // reset motors to default (mincommand)
@@ -590,37 +590,6 @@ function notifyOutdatedVersion(releaseData) {
             dialog.showModal();
         }
     });
-}
-
-function microtime() {
-    return new Date().getTime() / 1000;
-}
-
-function millitime() {
-    return new Date().getTime();
-}
-
-const DEGREE_TO_RADIAN_RATIO = Math.PI / 180;
-
-function degToRad(degrees) {
-    return degrees * DEGREE_TO_RADIAN_RATIO;
-}
-
-function bytesToSize(bytes) {
-
-    let outputBytes;
-
-    if (bytes < 1024) {
-        outputBytes = `${bytes} Bytes`;
-    } else if (bytes < 1048576) {
-        outputBytes = `${(bytes / 1024).toFixed(3)} KB`;
-    } else if (bytes < 1073741824) {
-        outputBytes = `${(bytes / 1048576).toFixed(3)} MB`;
-    } else {
-        outputBytes = `${(bytes / 1073741824).toFixed(3)} GB`;
-    }
-
-    return outputBytes;
 }
 
 function isExpertModeEnabled() {
