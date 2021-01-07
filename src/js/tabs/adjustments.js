@@ -292,7 +292,8 @@ TABS.adjustments.adjust_template = function () {
     let elementsNumber;
 
     if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_41)) {
-        elementsNumber = 31; // OSD Profile Select & LED Profile Select
+        // elementsNumber = 31; // OSD Profile Select & LED Profile Select
+        elementsNumber = 32; // 3D-Camera Convergence Select
     } else if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_40)) {
         elementsNumber = 29; // PID Audio
     } else if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_39)) {
