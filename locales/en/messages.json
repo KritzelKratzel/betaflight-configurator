@@ -1586,6 +1586,9 @@
     "portsFunction_FRSKY_OSD": {
         "message": "OSD (FrSky Protocol)"
     },
+    "portsFunction_TMG_OSD": {
+        "message": "OSD (TMG Protocol)"
+    },
     "pidTuningProfileOption": {
         "message": "Profile $1"
     },

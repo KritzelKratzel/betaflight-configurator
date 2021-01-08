@@ -18,6 +18,7 @@ TABS.ports.initialize = function (callback, scrollPosition) {
 	{ name: 'TELEMETRY_NANOCAM3D',  groups: ['telemetry'], sharableWith: ['msp'], notSharableWith: ['peripherals'], maxPorts: 1 },
         { name: 'RX_SERIAL',            groups: ['rx'], maxPorts: 1 },
         { name: 'BLACKBOX',     groups: ['peripherals'], sharableWith: ['msp'], notSharableWith: ['telemetry'], maxPorts: 1 },
+        { name: 'TMG_OSD',      groups: ['peripherals'], sharableWith: ['msp'], notSharableWith: ['telemetry'], maxPorts: 1 },
     ];
 
     if (semver.gte(FC.CONFIG.apiVersion, "1.15.0")) {
@@ -56,6 +57,10 @@ TABS.ports.initialize = function (callback, scrollPosition) {
 
     if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_43)) {
         functionRules.push({ name: 'FRSKY_OSD', groups: ['peripherals'], maxPorts: 1 });
+    }
+
+    if (semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_43)) {
+        functionRules.push({ name: 'TMG_OSD', groups: ['peripherals'], maxPorts: 1 });
     }
 
     for (const rule of functionRules) {

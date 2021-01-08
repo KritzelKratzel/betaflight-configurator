@@ -34,6 +34,7 @@ function MspHelper() {
     'RUNCAM_DEVICE_CONTROL': 14, // support communitate with RunCam Device
     'LIDAR_TF': 15,
     'FRSKY_OSD': 16,
+    'TMG_OSD': 17, // support TheMissingGear 3D-camera devices
     };
 
     self.REBOOT_TYPES = {
