@@ -36,6 +36,8 @@ function MspHelper() {
     'FRSKY_OSD': 16,
     'TMG_OSD': 17, // support TheMissingGear 3D-camera devices
     };
+    // serial ports function mask now 32 bits wide since merge of
+    // https://github.com/betaflight/betaflight-configurator/pull/1851
 
     self.REBOOT_TYPES = {
         FIRMWARE: 0,
