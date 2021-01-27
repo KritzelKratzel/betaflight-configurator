@@ -1990,7 +1990,7 @@ OSD.msp = {
         d.state = {};
         d.state.haveSomeOsd = (d.flags !== 0);
         d.state.haveMax7456Configured = bit_check(d.flags, 4) || (d.flags === 1 && semver.lt(FC.CONFIG.apiVersion, API_VERSION_1_34));
-        d.state.haveTmgOSDConfigured = semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_43) && bit_check(d.flags, 2); // query position of OSD_FLAGS_RESERVED_1, see msp.c
+        d.state.haveTmgOSDConfigured = semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_43) && bit_check(d.flags, 2); // query position of OSD_FLAGS_OSD_HARDWARE_TMGOSD, see msp.c
         d.state.haveFrSkyOSDConfigured = semver.gte(FC.CONFIG.apiVersion, API_VERSION_1_43) && bit_check(d.flags, 3);
         d.state.haveMax7456FontDeviceConfigured = d.state.haveMax7456Configured || d.state.haveFrSkyOSDConfigured || d.state.haveTmgOSDConfigured;
         d.state.isMax7456FontDeviceDetected = bit_check(d.flags, 5) || (d.state.haveMax7456FontDeviceConfigured && semver.lt(FC.CONFIG.apiVersion, API_VERSION_1_43));
