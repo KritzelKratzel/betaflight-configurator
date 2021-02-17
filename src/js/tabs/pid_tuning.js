@@ -1036,7 +1036,7 @@ TABS.pid_tuning.initialize = function (callback) {
             }
 
             return isVisible;
-        }
+        };
 
         let isVisibleBaroMagGps = false;
 
@@ -1440,18 +1440,18 @@ TABS.pid_tuning.initialize = function (callback) {
                     {name: "MultiWii (2.3 - latest)"},
                     {name: "MultiWii (2.3 - hybrid)"},
                     {name: "Harakiri"}
-                ]
+                ];
             } else if (semver.lt(FC.CONFIG.apiVersion, "1.20.0")) {
                 pidControllerList = [
                     {name: ""},
                     {name: "Integer"},
                     {name: "Float"}
-                ]
+                ];
             } else {
                 pidControllerList = [
                     {name: "Legacy"},
                     {name: "Betaflight"}
-                ]
+                ];
             }
 
             for (let i = 0; i < pidControllerList.length; i++) {
@@ -1803,10 +1803,36 @@ TABS.pid_tuning.initialize = function (callback) {
 
             $('#sliderPidsModeSelect').val(FC.TUNING_SLIDERS.slider_pids_mode);
 
+            $('#dMinSwitch').change(function() {
+                if (semver.lt(FC.CONFIG.apiVersion, API_VERSION_1_44)) {
+                    TuningSliders.setDMinFeatureEnabled($(this).is(':checked'));
+                    // switch dmin and dmax values on dmin on/off if sliders available
+                    if (!TuningSliders.pidSlidersUnavailable) {
+                        if (TuningSliders.dMinFeatureEnabled) {
+                            ADVANCED_TUNING.dMinRoll = FC.PIDs[0][2];
+                            ADVANCED_TUNING.dMinPitch = FC.PIDs[1][2];
+                            ADVANCED_TUNING.dMinYaw = FC.PIDs[2][2];
+                        } else {
+                            FC.PIDs[0][2] = ADVANCED_TUNING.dMinRoll;
+                            FC.PIDs[1][2] = ADVANCED_TUNING.dMinPitch;
+                            FC.PIDs[2][2] = ADVANCED_TUNING.dMinYaw;
+                        }
+                        TuningSliders.calculateNewPids();
+                    }
+                }
+            });
+
             // integrated yaw doesn't work with sliders therefore sliders are disabled
             $('input[id="useIntegratedYaw"]').change(() => TuningSliders.updatePidSlidersDisplay());
 
-            const allPidTuningSliders = $('#sliderMasterMultiplier, #sliderRollPitchRatio, #sliderIGain, #sliderPDRatio, #sliderPDGain, #sliderDMinRatio, #sliderFFGain');
+            let allPidTuningSliders;
+            if (semver.lt(FC.CONFIG.apiVersion, API_VERSION_1_44)) {
+                allPidTuningSliders = $('#sliderMasterMultiplier, #sliderPDRatio, #sliderPDGain, #sliderFFGain');
+                $('.tab-pid_tuning .firmwareSlider').hide();
+            } else {
+                allPidTuningSliders = $('#sliderMasterMultiplier, #sliderRollPitchRatio, #sliderIGain, #sliderPDRatio, #sliderPDGain, #sliderDMinRatio, #sliderFFGain');
+                $('.tab-pid-tuning .firmwareSlider').show();
+            }
 
             allPidTuningSliders.on('input', function() {
                 const slider = $(this);
@@ -2199,7 +2225,7 @@ TABS.pid_tuning.checkUpdateProfile = function (updateRateProfile) {
 
                     if (changedRateProfile) {
                         GUI.log(i18n.getMessage('pidTuningReceivedRateProfile', [FC.CONFIG.rateProfile + 1]));
-                        FC.CONFIG.rateProfile = self.currentRateProfile
+                        FC.CONFIG.rateProfile = self.currentRateProfile;
                     }
                 });
             }
@@ -2424,7 +2450,7 @@ TABS.pid_tuning.updateRatesLabels = function() {
             $('.maxRateWarning').toggle(warningRates);
 
             // and sort them in descending order so the largest value is at the top always
-            balloons.sort(function(a,b) {return (b.value - a.value)});
+            balloons.sort(function(a,b) {return (b.value - a.value);});
 
             // add the current rc values
             if (currentValues[0] && currentValues[1] && currentValues[2]) {

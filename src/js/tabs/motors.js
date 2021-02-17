@@ -203,7 +203,7 @@ TABS.motors.initialize = function (callback) {
     }
 
     function update_model(mixer) {
-        const imgSrc = CommonUtils.GetMixerImageSrc(mixer, FC.MIXER_CONFIG.reverseMotorDir, FC.CONFIG.apiVersion);
+        const imgSrc = getMixerImageSrc(mixer, FC.MIXER_CONFIG.reverseMotorDir, FC.CONFIG.apiVersion);
         $('.mixerPreview img').attr('src', imgSrc);
 
         const motorOutputReorderConfig = new MotorOutputReorderConfig(100);
@@ -369,7 +369,7 @@ TABS.motors.initialize = function (callback) {
         }
 
         $('.tab-motors .sensor select').change(function(){
-            TABS.motors.sensor = $('.tab-motors select[name="sensor_choice"]').val()
+            TABS.motors.sensor = $('.tab-motors select[name="sensor_choice"]').val();
             ConfigStorage.set({'motors_tab_sensor_settings': {'sensor': TABS.motors.sensor}});
 
             switch(TABS.motors.sensor){
